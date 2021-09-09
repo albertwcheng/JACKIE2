@@ -52,13 +52,14 @@ void printFGHelp(const char* programname)
 	//cerr<<"-b fasta output_prefix output_suffix prefixLength outchrRef readLength"<<endl;
 	//cerr<<"\tGenerete binary files of simulated reads binned by prefix"<<endl;
 
-	cerr<<"-b2 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq"<<endl;
-	cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
+	//cerr<<"-b2 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq"<<endl;
+	//cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
 
-	cerr<<"-b3 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerLengthIncludingPAM(23?)"<<endl;
-	cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
+	//cerr<<"-b3 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerLengthIncludingPAM(23?)"<<endl;
+	//cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
 
-	cerr<<"-b4 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
+	//cerr<<"-b4 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
+	cerr<<"-b fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
 
 	//cerr<<"-f binaryUnfold binaryFold threshold"<<endl;
@@ -67,12 +68,13 @@ void printFGHelp(const char* programname)
 	//cerr<<"-f2 binaryUnfold binaryFold threshold outputformat=[k,p]"<<endl;
 	//cerr<<"\tFold a file by removing reads redundant for threshold time(s) by std::sort"<<endl;
 
-	cerr<<"-f3 chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
+	//cerr<<"-f3 chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
+	cerr<<"-f chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
 	cerr<<"\tOutput bed files for reads occuring [thresholdLow,thresholdHigh] inclusive times "<<endl;
     
     
-	cerr<<"-pk binary"<<endl;
-	cerr<<"\tPrint the content of a binary KEYEDPOSITION file"<<endl;
+	//cerr<<"-pk binary"<<endl;
+	//cerr<<"\tPrint the content of a binary KEYEDPOSITION file"<<endl;
 
 	//cerr<<"-pp binary"<<endl;
 	//cerr<<"\tPrint the content of a binary PLAIN POSITION file"<<endl;
@@ -528,7 +530,7 @@ void foldGenomics_sortCompact(int argc,const char**argv)
 int main(int argc, const char **argv)
 {
 
-	cerr<<"JACKIE (Jackie & Albert's CRISPR k-mer instance enumerator) v0.1"<<endl;
+	cerr<<"JACKIE (Jackie & Albert's CRISPR k-mer instance enumerator) v2.0"<<endl;
 	cerr<<"[Built:"<<__DATE__<<" "<<__TIME__<<"]"<<endl;
 	if(argc<2 || !strcmp(argv[1],"-h"))
 	{
@@ -547,11 +549,11 @@ int main(int argc, const char **argv)
 	{
 		foldGenomics_generateBinary3(argc,argv);
 	}
-	else if(!strcmp(argv[1],"-b4"))
+	else if(!strcmp(argv[1],"-b4") || !strcmp(argv[1],"-b"))
 	{
 		foldGenomics_generateBinary4(argc,argv);
 	}	
-    else if(!strcmp(argv[1],"-f3"))
+    else if(!strcmp(argv[1],"-f3") || !strcmp(argv[1],"-f") )
 	{
 		foldGenomics_foldToBed_stdsort(argc,argv);
 	}else if(!strcmp(argv[1],"-pk"))

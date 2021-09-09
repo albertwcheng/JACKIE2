@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 bin_PROGRAMS = JACKIE JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.enumAbsentmers
-bin_SCRIPTS = outbedForPrefixJob.sh chainExonBedsToTranscriptBed.py removeIllegalBlockEntries.py fastjoinBedByOverlap.py runCasOFFinderOnSequences.py
+bin_SCRIPTS = outbedForPrefixJob.sh chainExonBedsToTranscriptBed.py removeIllegalBlockEntries.py fastjoinBedByOverlap.py runCasOFFinderOnSequences.py filterTableForZFableSeq.py filterTableForZFableSeqAndCopyNum.py filterPAMFoldGC.py
 JACKIE_SOURCES = JACKIE.main.cpp
 JACKIE_encodeSeqSpaceNGG_LDFLAGS = -lz
 JACKIE_encodeSeqSpaceNGG_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITERNGG 

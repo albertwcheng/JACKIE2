@@ -1578,8 +1578,9 @@ int main(int argc,char **argv)
     extra_settings=" FastIO option=True";
     #endif //__FAST_IO__
 
-    cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3 offAware "<<extra_settings<<endl;
-    
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3 offAware "<<extra_settings<<endl;
+    cerr<<"JACKIE.enumAbsentmers"<<extra_settings<<endl;
+
     if(argc<3){
         
         return printUsageAndExit_Mode3Offaware(argv[0]);
@@ -1750,8 +1751,9 @@ int main(int argc,char **argv)
 
     extra_settings+=" GZIP=True";
 
-    cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write "<<extra_settings<<endl;
-    
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write "<<extra_settings<<endl;
+    cerr<<"JACKIE.encodeSeqSpace"<<extra_settings<<endl;
+
     if(argc<3){
         
         return printUsageAndExit_writer(argv[0]);
@@ -1830,8 +1832,10 @@ int main(int argc,char **argv)
 
     extra_settings+=" GZIP=True";
 
-    cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
-    
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
+    cerr<<"JACKIE.encodeSeqSpaceNGG"<<extra_settings<<endl;
+
+
     if(argc<3){
         
         return printUsageAndExit_writer(argv[0]);
@@ -1916,8 +1920,10 @@ int main(int argc,char **argv)
     extra_settings+=" GZIP=True";
     #endif
 
-    cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
-    
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    cerr<<"JACKIE.countSeqNeighbors "<<extra_settings<<endl;
+
+
     if(argc<3){
         
         return printUsageAndExit_reader(argv[0]);
