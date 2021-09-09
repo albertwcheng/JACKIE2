@@ -1,4 +1,4 @@
-AC_INIT([JACKIE], [0.1], [albertwcheng@gmail.com])
+AC_INIT([JACKIE], [2.0], [albert@cheng.bio])
 AM_INIT_AUTOMAKE
 AC_PROG_CXX
 AC_CONFIG_FILES([Makefile])

@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-bin_PROGRAMS = JACKIE JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace
+bin_PROGRAMS = JACKIE JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.enumAbsentmers
 bin_SCRIPTS = outbedForPrefixJob.sh chainExonBedsToTranscriptBed.py removeIllegalBlockEntries.py fastjoinBedByOverlap.py runCasOFFinderOnSequences.py
 JACKIE_SOURCES = JACKIE.main.cpp
 JACKIE_encodeSeqSpaceNGG_LDFLAGS = -lz
@@ -11,3 +11,6 @@ JACKIE_countSeqNeighbors_SOURCES = SeqSpace.main.cpp
 JACKIE_encodeSeqSpace_LDFLAGS = -lz
 JACKIE_encodeSeqSpace_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITER
 JACKIE_encodeSeqSpace_SOURCES = SeqSpace.main.cpp
+JACKIE_enumAbsentmers_LDFLAGS = -lz
+JACKIE_enumAbsentmers_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_OFFAWARE
+JACKIE_enumAbsentmers_SOURCES = SeqSpace.main.cpp
