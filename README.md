@@ -60,7 +60,7 @@ CLUSTER_SCRIPT_HEADER='#!/bin/bash
 #SBATCH -p compute
 #SBATCH -q batch'
 
-JACKIE_DIR=/path/to/JACKIE2/ 
+JACKIE_DIR=/path/to/JACKIE2/ #If JACKIE2 is added to $PATH, then you don't need to add ${JACKIE_DIR}/ in the codes below.
 GENOME_DIR=/path/to/genome/
 GENOME=hg38 #genome
 kmer=20 #kmer
