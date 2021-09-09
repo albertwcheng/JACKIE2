@@ -188,6 +188,9 @@ Overlap selection.bed with one copy sites:
 fastjoinBedByOverlap.py selection.bed  $jackieDB/hg38PAM.1copy.BED > selection.overlap.hg38PAM.1copy.BED
 ```
 ## Run Cas-OFFinder 
+
+If you want to run Cas-OFFinder, follow these steps. If you are only interested in finding gRNAs without matches up to a certain mismatches, the `JACKIE.countSeqNeighbors` approach mentioned above is way faster when looking at millions of gRNAs.
+
 Requires offline version of Cas-OFFinder at http://www.rgenome.net/cas-offinder/portable)
 Also, cas-offinder should be in `$PATH`
 
