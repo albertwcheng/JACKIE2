@@ -127,7 +127,7 @@ echo "python ${JACKIE_DIR}/filterPAMFoldGC.py --gc-range $gcRange --cp-range $cp
 sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
 ```
 Optional: If you want to compute off-target profiles.
-Encode k-mer sequence NGG-subspace of the genome using JACKIE.encodeSeqSpaceNGG. If no NGG restriction, use JACKIE.encodeSeqSpace.
+Encode k-mer sequence NGG-subspace of the genome using `JACKIE.encodeSeqSpaceNGG`. If no NGG restriction, use `JACKIE.encodeSeqSpace`.
 ```
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
