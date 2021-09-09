@@ -175,7 +175,7 @@ Select unique sgRNA sites
 #select unique sgRNA sites
 awk -v FS="\t" -v OFS="\t" '($5==1)' $jackieDB/${genome}PAM.BED > $jackieDB/${genome}PAM.1copy.BED
 ```
-Precomputed [hg38 1-copy sites](http://albertcheng.info/jackie_downloads/hg38PAM.1copy.BED.gz) and [mm10 1-copy sites](http://albertcheng.info/jackie_downloads/mm10PAM.1copy.BED.gz)
+Precomputed [hg38 1-copy sites](https://albertcheng.info/jackie_downloads/hg38PAM.1copy.BED.gz) and [mm10 1-copy sites](https://albertcheng.info/jackie_downloads/mm10PAM.1copy.BED.gz)
 
 ## Selecting (clustered or single) CRISPR sites overlapping regions of interest
 Put regions of interest into a bed file, say,  `selection.bed`:
