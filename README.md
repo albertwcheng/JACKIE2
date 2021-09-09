@@ -48,6 +48,8 @@ cat nr/*.fa > $genome.nr.fa
 
 ```
 Run JACKIE2 using SLURM cluster
+
+Parameters. Change these to fit your case.
 ```
 #cluster script header, modify to fit your cluster. This is for Slurm. 256G memory is needed for encodeSeqSpace.
 CLUSTER_SCRIPT_HEADER='#!/bin/bash
@@ -65,8 +67,9 @@ kmer=20 #kmer
 mm=3 #mismatches
 pattern=XXXXXXXXXXXXXXXXXXXXNGG #pattern
 shortPattern=20NGG #shortened name for pattern
-
-#Create bin files XXXXXX.bin
+```
+Create bin files XXXXXX.bin
+```
 mkdir ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}
 cd ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}
 for N in A C G T; do
@@ -76,8 +79,9 @@ echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.
 echo "date; ${JACKIE_DIR}/JACKIE -b4 ${GENOME_DIR}/${GENOME}/${GENOME}.nr.fa ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/ .bin 6 ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.ref.txt $N n ${pattern}; date" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
 done
-
-#Fold bin files to XXXXXX.bed, 16 parallel jobs, each focusing on 2bp prefix (4^2)
+```
+Fold bin files to XXXXXX.bed, 16 parallel jobs, each focusing on 2bp prefix (4^2)
+```
 for prefix in AA AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG; do
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$prefix.outbed.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$prefix.outbed.stderr" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$prefix.outbed.sh
@@ -85,15 +89,34 @@ echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$prefix.outbed.
 echo "bash ${JACKIE_DIR}/outbedForPrefixJob.sh ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/ $prefix" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$prefix.outbed.sh
 sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$prefix.outbed.sh
 done
-
-#combine XXXXXX.bed to one BED for the whole genome
+```
+combine XXXXXX.bed to one BED for the whole genome
+```
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.stderr" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.sh
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.stdout" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.sh
 echo "cat ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/*.bed > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.BED" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.sh
 sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.sh
+```
 
-#filter for gc range 40%-60%, copy number = 1, max tandem run of T = 4.
+Optional step - collapse CRISPR sites from same chromosome into an extended bed format, with each line containing sites of the same sequence:
+```
+#collapse sgRNA binding locations with same sequecnes into an extended bed format
+chainExonBedsToTranscriptBed.py ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.BED 0 > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.bed
+```
+
+Optional step - sort extended bed file:
+```
+sort -k1,1 -k2,2n ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.bed > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.bed
+
+#some CRISPR sites are overlapping, and will crash browser visualization. Remove entries with overlapping sgRNA sites
+
+removeIllegalBlockEntries.py ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.bed ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.legal.bed ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.illegal.bed"
+
+```
+
+Optional: filter for gc range 40%-60%, copy number = 1, max tandem run of T = 4
+```
 gcRange=0.4,0.6
 cpRange=1,1
 maxTandemT=4
@@ -102,44 +125,37 @@ echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmj
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
 echo "python ${JACKIE_DIR}/filterPAMFoldGC.py --gc-range $gcRange --cp-range $cpRange --max-tandem-t $maxTandemT ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.BED > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
-
-#encode k-mer sequence NGG-subspace of the genome.
+```
+Optional: If you want to compute off-target profiles.
+Encode k-mer sequence NGG-subspace of the genome.
+```
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 echo "date; ${JACKIE_DIR}/JACKIE.encodeSeqSpaceNGG ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.NGG.seqbits.gz $kmer ${GENOME_DIR}/${GENOME}/nr/*.fa; date" >> ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
-
-#generate 3-mismatch off-target profiles for sgRNA with gc range 40%-60%, copy number = 1, max tandem run of T = 4. piped into awk script to put result string into name of the bed file to preserve bed formatting. remove NucKey.
+```
+Optional example:
+Generate 3-mismatch off-target profiles for sgRNA with gc range 40%-60%, copy number = 1, max tandem run of T = 4. piped into awk script to put result string into name of the bed file to preserve bed formatting. remove NucKey.
+```
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
 echo "date; ${JACKIE_DIR}/JACKIE.countSeqNeighbors ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.NGG.seqbits.gz $kmer $mm ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED 4,/,2 | awk -v FS=\"\\t\" -v OFS=\"\\t\" '{split(\$4,a,\"/\"); \$4=a[2] \"/\" \$7; print \$1,\$2,\$3,\$4,\$5,\$6}' > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED ; date"  >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
-
-#filter for 1/0/0/0
+```
+Optional example:
+filter for 1/0/0/0 (sgRNAs with no off-target matches up to 3-mismatches)
+```
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.sh
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.sh
 echo "date; grep 1/0/0/0 ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offp1000.BED; date"  >> ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/filterOffProfile.slurmjob.sh
-
 ```
 
 
-Optional step - collapse CRISPR sites from same chromosome into an extended bed format, with each line containing sites of the same sequence:
-```
-#collapse sgRNA binding locations with same sequecnes into an extended bed format
-echo "chainExonBedsToTranscriptBed.py $jackieDB/${genome}PAM.BED 0 > $jackieDB/${genome}PAM.sameChr.tx.bed" | qsub -l walltime=24:00:00
-```
-Optional step - sort extended bed file:
-```
-#sort extended bed file
-echo "sort -k1,1 -k2,2n $jackieDB/${genome}PAM.sameChr.tx.bed > $jackieDB/${genome}PAM.sameChr.tx.sorted.bed" | qsub -l walltime=24:00:00
 
-#some CRISPR sites are overlapping, and will crash browser visualization. Remove entries with overlapping sgRNA sites
-echo "removeIllegalBlockEntries.py $jackieDB/${genome}PAM.sameChr.tx.sorted.bed $jackieDB/${genome}PAM.sameChr.tx.sorted.legal.bed $jackieDB/${genome}PAM.sameChr.tx.sorted.illegal.bed" | qsub -l walltime=24:00:00
-```
 
 ## Filtering examples
 
