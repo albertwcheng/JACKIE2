@@ -76,7 +76,7 @@ for N in A C G T; do
 echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
 echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
-echo "date; ${JACKIE_DIR}/JACKIE -b4 ${GENOME_DIR}/${GENOME}/${GENOME}.nr.fa ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/ .bin 6 ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.ref.txt $N n ${pattern}; date" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
+echo "date; ${JACKIE_DIR}/JACKIE.bin ${GENOME_DIR}/${GENOME}/${GENOME}.nr.fa ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/ .bin 6 ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.ref.txt $N n ${pattern}; date" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/$N.b4.slurmjob.sh
 done
 ```

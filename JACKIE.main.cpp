@@ -44,52 +44,21 @@
 
 void printFGHelp(const char* programname)
 {
-	cerr<<"Usage:"<<programname<<" command (see below)"<<endl;
-	cerr<<"Description: Partition the reference genome into blocks of uniq and non-uniq positions on k-mer reads"<<endl;
-	cerr<<"See README for instructions"<<endl;
+
 	
 	
-	//cerr<<"-b fasta output_prefix output_suffix prefixLength outchrRef readLength"<<endl;
-	//cerr<<"\tGenerete binary files of simulated reads binned by prefix"<<endl;
-
-	//cerr<<"-b2 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq"<<endl;
-	//cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
-
-	//cerr<<"-b3 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerLengthIncludingPAM(23?)"<<endl;
-	//cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
-
-	//cerr<<"-b4 fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
-	cerr<<"-b fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
+	#ifdef __BIN_MAIN__
+	cerr<<"Usage:"<<programname<<" ";
+	cerr<<"fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
-
-	//cerr<<"-f binaryUnfold binaryFold threshold"<<endl;
-	//cerr<<"\tFold a file by removing reads redundant for threshold time(s)"<<endl;
-	
-	//cerr<<"-f2 binaryUnfold binaryFold threshold outputformat=[k,p]"<<endl;
-	//cerr<<"\tFold a file by removing reads redundant for threshold time(s) by std::sort"<<endl;
-
-	//cerr<<"-f3 chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
-	cerr<<"-f chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
+	#else
+		#ifdef __SORTTOBED_MAIN__
+	cerr<<"Usage:"<<programname<<" ";
+	cerr<<"chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
 	cerr<<"\tOutput bed files for reads occuring [thresholdLow,thresholdHigh] inclusive times "<<endl;
-    
-    
-	//cerr<<"-pk binary"<<endl;
-	//cerr<<"\tPrint the content of a binary KEYEDPOSITION file"<<endl;
+   		#endif
+	#endif
 
-	//cerr<<"-pp binary"<<endl;
-	//cerr<<"\tPrint the content of a binary PLAIN POSITION file"<<endl;
-
-	//cerr<<"-pc binary"<<endl;
-	//cerr<<"\tPrint the content of a binary COMPACT POSITION file"<<endl;
-	
-	//cerr<<"-c chrRef outputPrefix outputSuffix filebin formatBin=[k,p]"<<endl;
-	//cerr<<"\tPartition the simulated reads by chr. k=keyed, p=non-keyed bin file input"<<endl;
-	
-	//cerr<<"-s binPosition sortedOutput"<<endl;
-	//cerr<<"\tsort the simulated reads by position [encoded as PLAIN POSITION file]"<<endl;
-	
-	//cerr<<"-sc binPosition sortedOutput"<<endl;
-	//cerr<<"\tsort the simulated reads by position [input as POSITION file, output encoded as COMPACT POSITION file]"<<endl;
 	
 }
 
@@ -129,6 +98,19 @@ void foldGenomics_generateBinary4(int argc,const char** argv)
 	
 	GenomeNmersEncoder encoder(argv[3],argv[4],StringUtil::atoi(argv[5]),argv[6],argv[9]);
 	encoder.transferFromFastaFile(argv[2],argv[7],argv[8][0]=='N' || argv[8][0]=='n' );
+	
+}
+
+void foldGenomics_generateBinary4_new(int argc,const char** argv)
+{
+	if(argc<9)
+	{
+		printFGHelp(argv[0]);
+		return;
+	}
+	
+	GenomeNmersEncoder encoder(argv[2],argv[3],StringUtil::atoi(argv[4]),argv[5],argv[8]);
+	encoder.transferFromFastaFile(argv[1],argv[6],argv[7][0]=='N' || argv[7][0]=='n' );
 	
 }
 
@@ -281,6 +263,110 @@ void outKPtoBedFile_old(ofstream& ffileOut,SmartChrMap & indexedChrMap, int freq
         ffileOut<<freq<<"\t";
         ffileOut<<strand<<endl;
     }
+    
+}
+
+void foldGenomics_foldToBed_stdsort_new(int argc,const char** argv)
+{
+    //-f3 chrRef binaryUnfold outBedfile thresholdLow thresholdHigh
+    
+	if(argc<6)
+	{
+		printFGHelp(argv[0]);
+		return;
+	}
+    
+    SmartChrMap indexedChrMap(argv[1]);
+    
+	GenomeNmersDecoder decoder(argv[2]);
+    
+	int numEntries=decoder.numEntriesPending(KEYEDPOSITION);
+    
+	KeyedPosition* kps=new KeyedPosition[numEntries];
+    vector<KeyedPosition> store;
+    
+    
+	ofstream ffileOut(argv[3],ios::out);
+    
+	int nEntries=0;
+	int fEntries=0;
+    
+	int thrLo=StringUtil::atoi(argv[4]);
+	int thrHi=StringUtil::atoi(argv[5]);
+
+
+    
+	
+	int i=0;
+	
+	while(decoder.readEntry())
+	{
+		//decoder.kpos.printAsText(cerr);
+		//cerr<<endl;
+		kps[i++]=decoder.getKeyedPosition();
+        
+		nEntries++;
+        
+	}
+	
+	cerr<<nEntries<<" of sim reads read"<<endl;
+	
+	//cerr<<"*** Now fold ***"<<endl;
+	//sort entries now
+    
+	std::sort(kps,kps+numEntries);
+    
+	//bool outputPlainPosition=!strcmp(argv[5],"p");
+    
+	//now entries happening for a particular number of time and output
+    
+	KeyedPosition prePos=kps[0];
+    
+    store.push_back(prePos);
+	int freq=1;
+	
+	for(i=1;i<numEntries;i++)
+	{
+		const KeyedPosition& thisPos=kps[i];
+        
+		if(thisPos==prePos)
+		{
+            
+			freq++;
+		}
+		else
+		{
+			if(freq>=thrLo && (thrHi==0 || freq<=thrHi))
+			{
+				
+                outKPtoBedFile(ffileOut,indexedChrMap,freq,store);
+                
+				fEntries++;
+			}
+            
+			prePos=thisPos;
+			freq=1;
+            store.clear();
+            
+		}
+        
+        store.push_back(thisPos);
+	}
+    
+	if(freq>=thrLo && (thrHi==0 || freq<=thrHi))
+	{
+		outKPtoBedFile(ffileOut,indexedChrMap,freq,store);
+        
+		fEntries++;
+	}
+    
+	delete[] kps;
+    
+    
+	cout<<nEntries<<" folded to "<<fEntries<<" with ["<<thrLo<<","<<thrHi<<"] ocurrence(s)"<<endl;
+	cerr<<fEntries<<" of sim reads after fold"<<endl;
+    
+	ffileOut.close();
     
 }
 
@@ -531,63 +617,30 @@ int main(int argc, const char **argv)
 {
 
 	cerr<<"JACKIE (Jackie & Albert's CRISPR k-mer instance enumerator) v2.0"<<endl;
+	#ifdef __BIN_MAIN__
+	cerr<<"Subroutine JACKIE.bin"<<endl;
+	#endif
+	#ifdef __SORTTOBED_MAIN__
 	cerr<<"[Built:"<<__DATE__<<" "<<__TIME__<<"]"<<endl;
+	#endif
+	
+
 	if(argc<2 || !strcmp(argv[1],"-h"))
 	{
 		printFGHelp(argv[0]);
 	}
-    /*else if(!strcmp(argv[1],"-b"))
-	{
-        //foldGenomics_generateBinary(argc,argv);
-        cerr<<"not implemented"<<endl;
-	}*/
-	else if(!strcmp(argv[1],"-b2"))
-	{
-		foldGenomics_generateBinary2(argc,argv);
+	else{
+		#ifdef __BIN_MAIN__
+		foldGenomics_generateBinary4_new(argc,argv);
+		#else
+			#ifdef __SORTTOBED_MAIN__
+			foldGenomics_foldToBed_stdsort_new(argc,argv);
+			#else
+			cerr<<"error in compilation"<<endl;
+			#endif
+		#endif
 	}
-	else if(!strcmp(argv[1],"-b3"))
-	{
-		foldGenomics_generateBinary3(argc,argv);
-	}
-	else if(!strcmp(argv[1],"-b4") || !strcmp(argv[1],"-b"))
-	{
-		foldGenomics_generateBinary4(argc,argv);
-	}	
-    else if(!strcmp(argv[1],"-f3") || !strcmp(argv[1],"-f") )
-	{
-		foldGenomics_foldToBed_stdsort(argc,argv);
-	}else if(!strcmp(argv[1],"-pk"))
-	{
-		foldGenomics_print(argc,argv,KEYEDPOSITION);
-	}else{
-		cerr<<"Command not found:"<<argv[1]<<endl;
-	}
-    /*
-	else if(!strcmp(argv[1],"-f"))
-	{
-		foldGenomics_fold(argc,argv);
-	}else if(!strcmp(argv[1],"-pp"))
-	{
-		foldGenomics_print(argc,argv,POSITION);
-	}else if(!strcmp(argv[1],"-pc"))
-	{
-		foldGenomics_print(argc,argv,COMPACTPOSITION);
-	}
-	else if(!strcmp(argv[1],"-c"))
-	{
-		foldGenomics_partitionChr(argc,argv);
-	}else if(!strcmp(argv[1],"-s"))
-	{
-		foldGenomics_sort(argc,argv);
-	}
-	else if(!strcmp(argv[1],"-sc"))
-	{
-		foldGenomics_sortCompact(argc,argv);
-	}
-	else if(!strcmp(argv[1],"-f2"))
-	{
-		foldGenomics_fold_stdsort(argc,argv);
-	}*/
+
 	cerr<<"<Done>"<<endl;
 	return 0;
 
