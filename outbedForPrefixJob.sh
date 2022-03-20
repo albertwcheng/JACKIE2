@@ -7,11 +7,11 @@ fi
 
 pamFoldDir=$1
 prefix=$2
-
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 echo pamFoldDor=$pamFoldDir prefix=$prefix
 
 
 for i in $pamFoldDir/${prefix}*.bin; do
-	JACKIE.sortToBed $pamFoldDir/A.ref.txt $i ${i/.bin/}.bed 1 0
+	$SCRIPTPATH/JACKIE.sortToBed $pamFoldDir/A.ref.txt $i ${i/.bin/}.bed 1 0
 done
