@@ -13,5 +13,5 @@ echo pamFoldDor=$pamFoldDir prefix=$prefix
 
 
 for i in $pamFoldDir/${prefix}*.bin; do
-	/projects/cheng-lab/USERS/wcheng/JACKIE2/JACKIE.sortToBed $pamFoldDir/A.ref.txt $i ${i/.bin/}.bed 1 0
+	JACKIE.sortToBed $pamFoldDir/A.ref.txt $i ${i/.bin/}.bed 1 0
 done
