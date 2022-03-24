@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <ctime>
 
-#ifdef __USER_MMAP__
+#ifdef __USE_MMAP__
     #include "BitString_mmap.h"
 #else
     #include "BitString.h"

@@ -1,5 +1,6 @@
 AC_INIT([JACKIE], [2.0], [albert@cheng.bio])
 AM_INIT_AUTOMAKE
+AC_PROG_CC
 AC_PROG_CXX
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
