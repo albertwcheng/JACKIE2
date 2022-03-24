@@ -31,6 +31,8 @@ public:
     uint64_t numBytes;
     uint64_t numBits;
     struct stat statbuf;
+    string mmapfilename;
+
     Byte* _data;
     
     #ifdef GZIP_BUFFER_LENGTH
@@ -145,7 +147,7 @@ public:
     }
     
     
-    void init(uint64_t _numBits,string filename,Byte valuePerByte=0)
+    void init(uint64_t _numBits,Byte valuePerByte=0)
     {
         numBits=_numBits;
         numBytes=numBits/8;
@@ -155,16 +157,16 @@ public:
         
         cerr<<"trying map"<<endl;
 
-        int fd = open(filename.c_str(),O_RDWR);
+        int fd = open(mmapfilename.c_str(),O_RDWR);
         if(fd<0){
-            cerr<<"open cannot open "<<filename<<endl;
+            cerr<<"open cannot open "<<mmapfilename<<endl;
             exit(1);
         }
 
         
         int err = fstat(fd, &statbuf);
         if(err < 0){
-            cerr<<"fstat cannot open "<<filename<<endl;
+            cerr<<"fstat cannot open "<<mmapfilename<<endl;
              exit(2);
         }else{
             cerr<<"statbuf.st_size="<<statbuf.st_size<<endl;
@@ -196,10 +198,10 @@ public:
         cerr<<"_data init success"<<endl;
     }
     
-    BitString(uint64_t _numBits,string filename)
+    BitString(uint64_t _numBits)
     {
 
-        init(_numBits,filename);
+        init(_numBits);
     }
     
     BitString():numBytes(0),numBits(0),_data(NULL){
