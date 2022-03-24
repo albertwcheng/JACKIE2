@@ -31,11 +31,16 @@ public:
     uint64_t numBytes;
     uint64_t numBits;
     struct stat statbuf;
-    string mmapfilename;
+    static string mmapfilename;
 
     Byte* _data;
     
     #ifdef GZIP_BUFFER_LENGTH
+
+    static void setMmapFilename(string _mmapfilename){
+        BitString::mmapfilename=_mmapfilename;
+    }
+
     bool gzBitString(const string& filename,uint64_t _numBits)
     {
         numBits=_numBits;

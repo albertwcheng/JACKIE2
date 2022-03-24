@@ -34,8 +34,11 @@ int printUsageAndExit_Mode3Offaware2(string programName)
 }
 
 int printUsageAndExit_writer(string programName)
-{
+{   #ifdef __USE_MMAP__
+    cerr<<programName<<" outputSeqBits(.gz) kmer mmapFile fasta1 fasta2 ... fastaN"<<endl;
+    #else
     cerr<<programName<<" outputSeqBits(.gz) kmer fasta1 fasta2 ... fastaN"<<endl;
+    #endif
     return 1;
 }
 
@@ -1839,6 +1842,15 @@ int main(int argc,char **argv)
     extra_settings+=" GZIP=True";
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
+    #ifdef __USE_MMAP__
+    cerr<<"JACKIE.encodeSeqSpaceNGG.mmap"<<extra_settings<<endl;
+
+    if(argc<4){
+        
+        return printUsageAndExit_writer(argv[0]);
+    }
+
+    #else
     cerr<<"JACKIE.encodeSeqSpaceNGG"<<extra_settings<<endl;
 
 
@@ -1846,7 +1858,8 @@ int main(int argc,char **argv)
         
         return printUsageAndExit_writer(argv[0]);
     }
-    
+    #endif
+
     string outBitStringFileName=argv[1];
 
     int kmer=StringUtil::atoi(argv[2]);
@@ -1854,12 +1867,19 @@ int main(int argc,char **argv)
 
     time_t start_time=time(NULL);
 
+    #ifdef __USE_MMAP__
+        BitString::setMmapFilename(argv[3]);
+        #define STARTIDX 4
+    #else
+        #define STARTIDX 3
+    #endif
+
 
     StepwiseSeqSpaceWithMotifs seqspace(kmer,StepwiseSeqSpaceWithMotifs::getFwdMotif(kmer,"NGG"));
 
     
     
-    for(int i=3;i<argc;i++){
+    for(int i=STARTIDX;i<argc;i++){
         
 
         time_t prev_time=time(NULL);
