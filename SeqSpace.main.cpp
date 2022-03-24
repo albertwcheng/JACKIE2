@@ -13,7 +13,13 @@
 #include "FastaFile.h"
 #include <queue>
 
+
+
 using namespace std;
+
+#ifdef __USE_MMAP__
+string BitString::mmapfilename;
+#endif
 
 int printUsageAndExit(string programName)
 {
