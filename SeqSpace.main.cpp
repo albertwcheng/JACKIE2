@@ -671,7 +671,7 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
         }
     }
 
-    StepwiseSeqSpaceWithMotifs(int _kmer, string _fwd_motif):SeqSpace(_kmer),fwd_mask(_fwd_motif)
+    StepwiseSeqSpaceWithMotifs(int _kmer, string _fwd_motif,string _filename):SeqSpace(_kmer,_filename),fwd_mask(_fwd_motif)
     {
 
         init_StepwiseSeqSpace(_fwd_motif.length());

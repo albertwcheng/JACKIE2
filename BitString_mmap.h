@@ -145,7 +145,7 @@ public:
     }
     
     
-    void init(uint64_t _numBits,Byte valuePerByte=0)
+    void init(uint64_t _numBits,string filename,Byte valuePerByte=0)
     {
         numBits=_numBits;
         numBytes=numBits/8;
@@ -155,16 +155,16 @@ public:
         
         cerr<<"trying map"<<endl;
 
-        int fd = open("/Users/albert/mmap.bbb",O_RDWR);
+        int fd = open(filename.c_str(),O_RDWR);
         if(fd<0){
-            cerr<<"cannot open ~/mmap.bbb"<<endl;
+            cerr<<"open cannot open "<<filename<<endl;
             exit(1);
         }
 
         
         int err = fstat(fd, &statbuf);
         if(err < 0){
-            cerr<<"2 cannot open ~/mmap.bbb"<<endl;
+            cerr<<"fstat cannot open "<<filename<<endl;
              exit(2);
         }else{
             cerr<<"statbuf.st_size="<<statbuf.st_size<<endl;
@@ -187,19 +187,19 @@ public:
         //exit(1);
 
         for(uint64_t i=0;i<numBytes;i++){
-            if(i%10000000==1){
+            /*if(i%10000000==1){
                 cerr<<"set zero "<<i<<endl;
-            }
+            }*/
             _data[i]=valuePerByte;
         }
 
         cerr<<"_data init success"<<endl;
     }
     
-    BitString(uint64_t _numBits)
+    BitString(uint64_t _numBits,string filename)
     {
 
-        init(_numBits);
+        init(_numBits,filename);
     }
     
     BitString():numBytes(0),numBits(0),_data(NULL){
