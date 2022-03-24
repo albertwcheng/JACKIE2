@@ -34,7 +34,8 @@ int printUsageAndExit_Mode3Offaware2(string programName)
 }
 
 int printUsageAndExit_writer(string programName)
-{   #ifdef __USE_MMAP__
+{   
+    #ifdef __USE_MMAP__
     cerr<<programName<<" outputSeqBits(.gz) kmer mmapFile fasta1 fasta2 ... fastaN"<<endl;
     #else
     cerr<<programName<<" outputSeqBits(.gz) kmer fasta1 fasta2 ... fastaN"<<endl;
