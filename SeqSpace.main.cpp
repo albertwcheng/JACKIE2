@@ -1854,11 +1854,9 @@ int main(int argc,char **argv)
 
     time_t start_time=time(NULL);
 
-    #ifdef __USE_MMAP__
-    StepwiseSeqSpaceWithMotifs seqspace(kmer,StepwiseSeqSpaceWithMotifs::getFwdMotif(kmer,"NGG"),argv[3]);
-    #else
 
-    #endif
+    StepwiseSeqSpaceWithMotifs seqspace(kmer,StepwiseSeqSpaceWithMotifs::getFwdMotif(kmer,"NGG"));
+
     
     
     for(int i=3;i<argc;i++){
