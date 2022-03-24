@@ -30,7 +30,7 @@ public:
 
     uint64_t numBytes;
     uint64_t numBits;
-
+    struct stat statbuf;
     Byte* _data;
     
     #ifdef GZIP_BUFFER_LENGTH
@@ -161,14 +161,30 @@ public:
             exit(1);
         }
 
+        
+        int err = fstat(fd, &statbuf);
+        if(err < 0){
+            cerr<<"2 cannot open ~/mmap.bbb"<<endl;
+             exit(2);
+        }else{
+            cerr<<"statbuf.st_size="<<statbuf.st_size<<endl;
+        }
+
         //_data=new Byte[numBytes];
-        _data=(Byte*)mmap(NULL,numBytes,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS,fd,0);
+        _data=(Byte*)mmap(NULL,statbuf.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
         if(_data==MAP_FAILED){
             cerr<<"mmap failed"<<endl;
         }else{
             cerr<<"mmap success"<<endl;
+            
+            /*int err=munmap(_data,statbuf.st_size);
+            if(err!=0){
+                cerr<<"unmap failed"<<endl;
+            }*/
+            
         }
 
+        //exit(1);
 
         for(uint64_t i=0;i<numBytes;i++){
             if(i%10000000==1){
@@ -194,7 +210,7 @@ public:
         /*if(_data)
             delete[] _data;*/
         if(_data!=MAP_FAILED){
-            int err=munmap(_data,numBytes);
+            int err=munmap(_data,statbuf.st_size);
             if(err!=0){
                 cerr<<"unmap failed"<<endl;
             }
