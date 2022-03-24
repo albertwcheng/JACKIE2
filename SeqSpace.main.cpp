@@ -3,7 +3,12 @@
 #include <stdexcept>
 #include <ctime>
 
-#include "BitString.h"
+#ifdef __USER_MMAP__
+    #include "BitString_mmap.h"
+#else
+    #include "BitString.h"
+#endif
+
 #include "Commonf.h"
 #include "FastaFile.h"
 #include <queue>
