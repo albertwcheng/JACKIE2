@@ -162,16 +162,16 @@ public:
         
         cerr<<"trying map"<<endl;
 
-        int fd = open(mmapfilename.c_str(),O_RDWR);
+        int fd = open(BitString::mmapfilename.c_str(),O_RDWR);
         if(fd<0){
-            cerr<<"open cannot open "<<mmapfilename<<endl;
+            cerr<<"open cannot open "<<BitString::mmapfilename<<endl;
             exit(1);
         }
 
         
         int err = fstat(fd, &statbuf);
         if(err < 0){
-            cerr<<"fstat cannot open "<<mmapfilename<<endl;
+            cerr<<"fstat cannot open "<<BitString::mmapfilename<<endl;
              exit(2);
         }else{
             cerr<<"statbuf.st_size="<<statbuf.st_size<<endl;
