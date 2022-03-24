@@ -151,7 +151,8 @@ public:
         return *this;
     }
     
-    
+    string BitString::mmapfilename;
+
     void init(uint64_t _numBits,Byte valuePerByte=0)
     {
         numBits=_numBits;
