@@ -160,7 +160,6 @@ for PREFIX in AA AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG; do
 date; date +%s;
 echo "working on $PREFIX"
 echo "date; date +%s; ${JACKIE_DIR}/JACKIE.encodeSeqSpace.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $PREFIX $PAM ${GENOME_DIR}/${GENOME}/nr/*.fa; date; date +%s;" > ${GENOME_DIR}/${GENOME}/encodeSeqSpace.prefixed.$kmer.$PREFIX.$PAM.slurmjob.sh
-rm ${GENOME_DIR}/${GENOME}/encodeSeqSpace.prefixed.$kmer.$PREFIX.$PAM.slurmjob.std*
 bash ${GENOME_DIR}/${GENOME}/encodeSeqSpace.prefixed.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/encodeSeqSpace.prefixed.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/encodeSeqSpace.prefixed.$kmer.$PREFIX.$PAM.slurmjob.stderr
 done;
 date; date +%s;
@@ -169,32 +168,32 @@ date; date +%s;
 Similarly, a "divide-and-conquer" approach for counting sequence neighbors:
 ```
 PAM=NGG #PAM=- for no-PAM restrictions, i.e., all possible k-mers
+inputBed=XXXX.bed #change to your input bed file name
+outputBed=YYYY.bed #change to your output bed file name
 
 date; date +%s;
 PREFIX=AC
 echo "working on $PREFIX"
-#echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.NGG.$PREFIX.seqbits.gz $kmer $mm ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED $PREFIX 4,/,2 | awk -v FS=\"\\t\" -v OFS=\"\\t\" '{split(\$4,a,\"/\"); \$4=a[2] \"/\" \$7; print \$1,\$2,\$3,\$4,\$5,\$6}' > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED ; date; date +%s;"  >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.slurmjob.sh
-echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm testCSN.txt $PREFIX 0 > testCSN.counts.txt ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm $inputBed $PREFIX 0 4,/,2 > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
 
-rm ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.std*
 bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
 
-mv testCSN.counts.txt testCSN.txt 
-
-
+mv tmp.00 tmp.01 
 
 for PREFIX in AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG; do
 date; date +%s;
 echo "working on $PREFIX"
-#echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.NGG.$PREFIX.seqbits.gz $kmer $mm ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED $PREFIX 4,/,2 | awk -v FS=\"\\t\" -v OFS=\"\\t\" '{split(\$4,a,\"/\"); \$4=a[2] \"/\" \$7; print \$1,\$2,\$3,\$4,\$5,\$6}' > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED ; date; date +%s;"  >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.slurmjob.sh
-echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm testCSN.txt $PREFIX 1 1 > testCSN.counts.txt ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
 
-rm ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.std*
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm tmp.01 $PREFIX 1 4,/,2 > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
+
 bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
 
-mv testCSN.counts.txt testCSN.txt 
+mv tmp.00 tmp.01 
 
 done;
+
+mv tmp.01 $outputBed
+
 date; date +%s;
 
 
