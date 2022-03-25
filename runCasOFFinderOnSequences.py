@@ -106,8 +106,11 @@ if __name__=='__main__':
     for lin in fil:
         lin=lin.rstrip("\r\n")
         fields=lin.split("\t")
+        if sep=="":
+            seq=fields[col]
+        else:
+            seq=fields[col].split(sep)[elementIdx]
         
-        seq=fields[col]
         
     
         patternList=matchDict[seq.upper()+"NNN"]
