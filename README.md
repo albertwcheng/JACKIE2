@@ -177,7 +177,7 @@ outputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPatte
 sequenceField="4,/,2" #fourth column => split by "/" => second element
 
 date; date +%s;
-PREFIX=AC
+PREFIX=AA
 echo "working on $PREFIX"
 echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm $inputBed $PREFIX 0 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
 
@@ -258,19 +258,16 @@ If you want to run Cas-OFFinder, follow these steps. If you are only interested 
 Requires offline version of Cas-OFFinder at http://www.rgenome.net/cas-offinder/portable)
 Also, cas-offinder should be in `$PATH`
 
-For example, from selection.overlap.hg38PAM.1copy.BED above:
-Let say, up to 3 mismatches. Sequence is encoded in the itemName (on the 8th column, second component of a split with "/"), so seqColExtract=8,/,2
+Let say, up to 3 mismatches. Sequence is encoded in the itemName (on the 4th column, second component of a split with "/"), so seqColExtract=4,/,2
 ```
+pathToGenome=~/Documents/UnixEnv/genomes/hg38/nr #folder of the genome fa files.
+BEDFile=/Users/albert/Documents/UnixEnv/genomes/hg38/pamFold-20NGG/hg38.20NGG.cpRange1\,1.GC0.4\,0.6.top1000.BED #input bed
+cas_outDir=~/Documents/UnixEnv/CasOffOut #folder to store cas-offinder results
+maxNmismatches=3 #number of mismatches 
+seqColExtract=4,/,2 #extract sequence from bed file encoded in the name of the items by JACKIE
 
-genome=<fill in your genome> #e.g., hg38
-genomesRoot=<fill in your genomes data root path> 
-pathToGenome=$genomesRoot/$genome
+runCasOFFinderOnSequences.py $BEDFile $seqColExtract $maxNmismatches $pathToGenome $cas_outDir > $BEDFile.cas_off.txt 2> $BEDFile.cas_off.stderr.txt
 
-BEDFile=selection.overlap.hg38PAM.1copy.BED
-cas_outDir=/path/to/IOForCasOffFinder
-maxNmismatches=3
-seqColExtract=8,/,2
-runCasOFFinderOnSequences.py $BEDFile $seqColExtract $maxNmismatches $pathToGenome $cas_outDir > $BEDFile.cas_off.txt
 ```
 
 <!--
@@ -282,5 +279,19 @@ runCasOFFinderOnSequences.py $BEDFile $seqColExtract $maxNmismatches $pathToGeno
 runCasOFFinderOnSequences.py <file> 8,/,2 3 ~/Dropbox/unixEnv/genomes/hg38/ casOffinder_outputDir > ???
 
 #runCasOFFinderOnSequences.py newSelectionLoop.overlap.hg38PAM.sameChr.tx.sorted.legal.1copy.GC40to60.no5T.noLowercase.2.bed 17 3 ~/Dropbox/unixEnv/genomes/hg38/ newSelectionLoop.overlap.hg38PAM_off > newSelectionLoop.overlap.hg38PAM.sameChr.tx.sorted.legal.1copy.GC40to60.no5T.noLowercase.2.casOffinder.txt
+
+
+
+genome=<fill in your genome> #e.g., hg38
+genomesRoot=<fill in your genomes data root path> 
+pathToGenome=$genomesRoot/$genome
+
+BEDFile=selection.overlap.hg38PAM.1copy.BED
+cas_outDir=/path/to/IOForCasOffFinder
+maxNmismatches=3
+seqColExtract=8,/,2
+runCasOFFinderOnSequences.py $BEDFile $seqColExtract $maxNmismatches $pathToGenome $cas_outDir > $BEDFile.cas_off.txt
+
+
 ```
 -->

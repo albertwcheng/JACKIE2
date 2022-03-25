@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 from sys import *
 from tempfile import mkdtemp
 import os
+import time
 
 def printUsageAndExit(programName):
     print >> stderr,programName,"filename col1,sep,elementIdx mismatches genomeDir casIODir"
@@ -45,6 +46,8 @@ if __name__=='__main__':
     CasOF_inname=tmpDir+"/in.txt"
     CasOF_outname=tmpDir+"/out.txt"
     
+
+    start1 = time.time()
     fout=open(CasOF_inname,"w")
     print >> fout,genomeDir
     print >> fout,"NNNNNNNNNNNNNNNNNNNNNGG"
@@ -64,11 +67,15 @@ if __name__=='__main__':
 
     fout.close()
 
+    end1 = time.time()
+    print >> stderr,"Finish preparing cas-offinder input file in",(end1-start1)    
     
-    
+    start2 = time.time()
     os.system("cas-offinder "+CasOF_inname+" G "+CasOF_outname)
+    end2 = time.time()
+    print >> stderr,"Finish running cas-offinder in",(end2-start2)
     
-    
+    start3=time.time()
     fil=open(CasOF_outname)
     
 
@@ -106,4 +113,8 @@ if __name__=='__main__':
         patternList=matchDict[seq.upper()+"NNN"]
         print >> stdout,lin+"\t"+"/".join([str(x) for x in patternList])
 
+    end3=time.time()
+    print >> stderr,"Finish summaring off-targets in",(end3-start3)
+
+    print >> stderr,"Done in",(end3-start1)
     
