@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-bin_PROGRAMS = JACKIE.bin JACKIE.sortToBed JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.encodeSeqSpaceNGG.mmap JACKIE.createMmapFile
+bin_PROGRAMS = JACKIE.bin JACKIE.sortToBed JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.encodeSeqSpaceNGG.mmap JACKIE.createMmapFile JACKIE.encodeSeqSpace.prefixed JACKIE.countSeqNeighbors.prefixed
 bin_SCRIPTS = outbedForPrefixJob.sh chainExonBedsToTranscriptBed.py removeIllegalBlockEntries.py fastjoinBedByOverlap.py runCasOFFinderOnSequences.py filterTableForZFableSeq.py filterTableForZFableSeqAndCopyNum.py filterPAMFoldGC.py
 JACKIE_bin_SOURCES = JACKIE.main.cpp
 JACKIE_bin_CPPFLAGS = -O3 -D__FAST_IO__ -D__BIN_MAIN__
@@ -19,3 +19,9 @@ JACKIE_encodeSeqSpaceNGG_mmap_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITERNGG -
 JACKIE_encodeSeqSpaceNGG_mmap_SOURCES = SeqSpace.main.cpp
 JACKIE_createMmapFile_CPPFLAGS = -O3
 JACKIE_createMmapFile_SOURCES = CreateMmapFile_main.cpp
+JACKIE_encodeSeqSpace_prefixed_LDFLAGS = -lz
+JACKIE_encodeSeqSpace_prefixed_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITERNGG_PREFIXED
+JACKIE_encodeSeqSpace_prefixed_SOURCES = SeqSpace.main.cpp
+JACKIE_countSeqNeighbors_prefixed_LDFLAGS = -lz
+JACKIE_countSeqNeighbors_prefixed_CPPFLAGS = -O3 -D__USE_GZIP -D__FAST_IO__ -D__MODE3_READER_PREFIXED
+JACKIE_countSeqNeighbors_prefixed_SOURCES = SeqSpace.main.cpp

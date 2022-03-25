@@ -47,7 +47,7 @@ public:
         _data=new Byte[numBytes];
 
         uint64_t byteRemaining=numBytes;
-
+        cerr<<numBytes<<" bytes to be read"<<endl;
         for(uint64_t i=0;i<numBytes;i+=GZIP_BUFFER_LENGTH){
             int bytes_read=gzread(file,_data+i,(byteRemaining<GZIP_BUFFER_LENGTH)?byteRemaining:GZIP_BUFFER_LENGTH);
             byteRemaining-=bytes_read;
@@ -219,7 +219,7 @@ public:
             cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
             return false;
         }else{
-            cerr<<"gzopen of "<<filename<<" succeeded. Proceed to writing"<<endl;
+            cerr<<"gzopen of "<<filename<<" succeeded. Proceed to writing "<<numBytes<<" bytes"<<endl;
         }
 
         uint64_t numBytesRemaining=numBytes;
@@ -245,6 +245,8 @@ public:
                     return false;
                 }
             }
+
+            numBytesRemaining-=byte_written;
         }        
 
         gzclose(file);

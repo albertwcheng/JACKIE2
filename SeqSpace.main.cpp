@@ -49,11 +49,26 @@ int printUsageAndExit_writer(string programName)
     return 1;
 }
 
-int printUsageAndExit_reader(string programName)
-{
-    cerr<<programName<<" bitStringFile kmer mthreshold searchStringFile(.gz)"<<endl;
+int printUsageAndExit_writer_prefixed(string programName)
+{   
+   
+    cerr<<programName<<" outputSeqBits(.gz) kmer prefix(e.g., CG) PAM fasta1 fasta2 ... fastaN"<<endl;
     return 1;
 }
+
+int printUsageAndExit_reader(string programName)
+{
+    cerr<<programName<<" seqBits(.gz) kmer mthreshold searchFile prefix  [col or col,sep,element]"<<endl;
+    return 1;
+}
+
+int printUsageAndExit_reader_prefixed(string programName)
+{
+    cerr<<programName<<" seqBits(.gz) kmer mthreshold searchFile prefix 0or1:add_to_previous_profile [col or col,sep,element]"<<endl;
+    return 1;
+}
+
+
 
 
 #define A 0
@@ -127,7 +142,8 @@ public:
 
     uint64_t seqToIndex(string _seq){
         uint64_t idx=NtToIdx(_seq[0]);
-        for(int i=1;i<this->kmer;i++)
+        //for(int i=1;i<this->kmer;i++)
+        for(int i=1;i<_seq.length();i++)
         {
             idx<<=2;
             idx|=NtToIdx(_seq[i]);
@@ -139,7 +155,8 @@ public:
     static uint64_t seqToIndexStatic(string _seq){
         int _kmer=_seq.length();
         uint64_t idx=NtToIdx(_seq[0]);
-        for(int i=1;i<_kmer;i++)
+        //for(int i=1;i<_kmer;i++)
+        for(int i=1;i<_seq.length();i++)
         {
             idx<<=2;
             idx|=NtToIdx(_seq[i]);
@@ -148,10 +165,10 @@ public:
         return idx; 
     }
 
-    string indexToSeq(uint64_t idx)
+    string indexToSeq(uint64_t idx,int _k=0)
     {
         string seq;
-        for(int i=0;i<this->kmer;i++){
+        for(int i=0;i<((_k==0)?this->kmer:_k);i++){
             seq=IdxToNt(idx & 3)+seq;
             idx>>=2;
         }
@@ -379,147 +396,6 @@ public:
     }
 };
 
-class StepwiseSeqSpace:public SeqSpace
-{   
-    private:
-    int idx_i;
-
-    uint64_t fwd_idx;
-    uint64_t rev_idx;
-    uint64_t mask;
-    uint64_t rev_A_setter;
-    uint64_t rev_C_setter;
-    uint64_t rev_G_setter;
-    uint64_t rev_T_setter;
-    
-    public:
-
-    void init_StepwiseSeqSpace(int _kmer){
-        this->idx_i=0;
-        this->fwd_idx=0;
-        this->rev_idx=0;
-  
-        this->mask=3;
-
-        
-        this->rev_A_setter=0;
-        this->rev_C_setter=1;
-        this->rev_G_setter=2;
-        this->rev_T_setter=3;
-
-        for(int i=1;i<_kmer;i++)
-        {
-            this->mask<<=2;
-            this->mask|=3;
-
-            this->rev_A_setter<<=2;
-            this->rev_C_setter<<=2;
-            this->rev_G_setter<<=2;
-            this->rev_T_setter<<=2;
-        }
-    }
-
-    StepwiseSeqSpace(int _kmer):SeqSpace(_kmer)
-    {
-
-        init_StepwiseSeqSpace(_kmer);
-
-    }
-
-    StepwiseSeqSpace(int _kmer,string inBitStringFileName, bool _useGzip=false):SeqSpace(_kmer,inBitStringFileName,_useGzip){
-        init_StepwiseSeqSpace(_kmer);
-    }    
-
-    
-
-    string Uint64ToString(uint64_t idxer)
-    {
-        string s;
-        for(int i=0;i<64;i++)
-        {
-            s=(((idxer&1)==1)?'1':'0')+s;
-            idxer>>=1;
-        }
-
-        return s;
-    }
-
-    inline void see(char c)
-    {
-        switch(c)
-        {
-            case 'A':
-
-                this->idx_i++; 
-                if(this->idx_i>1){
-                    this->fwd_idx<<=2;
-                    this->rev_idx>>=2;
-                }
-
-                this->rev_idx|=this->rev_T_setter;
-
-                break;
-            case 'C':
-
-                this->idx_i++;
-                if(this->idx_i>1){
-                    this->fwd_idx<<=2;
-                    this->rev_idx>>=2;
-                }
-
-                this->fwd_idx|=1;
-                this->rev_idx|=this->rev_G_setter;
-
-                break;
-            case 'G':
-
-                this->idx_i++;
-                if(this->idx_i>1){
-                    this->fwd_idx<<=2;
-                    this->rev_idx>>=2;
-                }
-
-                this->fwd_idx|=2;
-                this->rev_idx|=this->rev_C_setter;
-
-                break;
-            case 'T':
-
-                this->idx_i++;
-                if(this->idx_i>1){
-                    this->fwd_idx<<=2;
-                    this->rev_idx>>=2;
-                }
-
-
-                this->fwd_idx|=3;
-                this->rev_idx|=this->rev_A_setter;
-
-                break;
-            default:
-                this->idx_i=0;
-                this->fwd_idx=0;
-                this->rev_idx=0;
-
-                break;
-        }
-
-        if(this->idx_i==this->kmer)
-        {
-
-            //cerr<<"\tFwd "<<Uint64ToString(this->fwd_idx & this->mask)<<" ~ "<<this->indexToSeq(this->fwd_idx & this->mask)<<endl;
-            //cerr<<"\tRev "<<Uint64ToString(this->rev_idx & this->mask)<<" ~ "<<this->indexToSeq(this->rev_idx & this->mask)<<endl;
-            this->bits.setBit(this->fwd_idx & this->mask,1);
-            this->bits.setBit(this->rev_idx & this->mask,1);
-            this->idx_i--;
-        }
-    }
-
-};
-
-
-
-
 
 class SeqBitMask{
     public:
@@ -630,6 +506,198 @@ class SeqBitMask{
 };
 
 
+class StepwiseSeqSpace:public SeqSpace
+{   
+    private:
+    int idx_i;
+
+    uint64_t fwd_idx;
+    uint64_t rev_idx;
+    uint64_t mask;
+    uint64_t rev_A_setter;
+    uint64_t rev_C_setter;
+    uint64_t rev_G_setter;
+    uint64_t rev_T_setter;
+
+
+    
+    public:
+    SeqBitMask *prefix_mask;
+    uint64_t prefixLength;
+
+    void init_StepwiseSeqSpace(int _kmer){
+        this->idx_i=0;
+        this->fwd_idx=0;
+        this->rev_idx=0;
+  
+        this->mask=3;
+
+        
+        this->rev_A_setter=0;
+        this->rev_C_setter=1;
+        this->rev_G_setter=2;
+        this->rev_T_setter=3;
+
+        for(int i=1;i<_kmer;i++)
+        {
+            this->mask<<=2;
+            this->mask|=3;
+
+            this->rev_A_setter<<=2;
+            this->rev_C_setter<<=2;
+            this->rev_G_setter<<=2;
+            this->rev_T_setter<<=2;
+        }
+    }
+
+    ~StepwiseSeqSpace(){
+        if(this->prefix_mask){
+            delete this->prefix_mask;
+        }
+    }
+
+    StepwiseSeqSpace(int _kmer):SeqSpace(_kmer),prefix_mask(NULL),prefixLength(0)
+    {
+
+        init_StepwiseSeqSpace(_kmer);
+
+    }
+
+    static string getPrefixMaskString(int kmer,string prefixNuc){
+        string S=prefixNuc;
+        for(int i=0;i<kmer-prefixNuc.length();i++){
+            S+="N";
+        }
+
+        return S;
+    }
+
+    StepwiseSeqSpace(int _kmer,string inBitStringFileName, bool _useGzip=false):SeqSpace(_kmer,inBitStringFileName,_useGzip),prefix_mask(NULL),prefixLength(0){
+        init_StepwiseSeqSpace(_kmer);
+    }    
+
+
+    StepwiseSeqSpace(int _kmer,string inBitStringFileName, string _prefix, bool _useGzip=false):SeqSpace(_kmer,inBitStringFileName,_useGzip),prefix_mask(NULL){
+        init_StepwiseSeqSpace(_kmer+_prefix.length());
+
+        this->prefix_mask=new SeqBitMask(StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix));
+        this->prefixLength=_prefix.length();
+
+
+        cerr<<"_prefix="<<StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix)<<endl;
+        cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
+        cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
+    } 
+    
+
+    string Uint64ToString(uint64_t idxer)
+    {
+        string s;
+        for(int i=0;i<64;i++)
+        {
+            s=(((idxer&1)==1)?'1':'0')+s;
+            idxer>>=1;
+        }
+
+        return s;
+    }
+
+    inline void see(char c)
+    {
+        switch(c)
+        {
+            case 'A':
+
+                this->idx_i++; 
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+                }
+
+                this->rev_idx|=this->rev_T_setter;
+
+                break;
+            case 'C':
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+                }
+
+                this->fwd_idx|=1;
+                this->rev_idx|=this->rev_G_setter;
+
+                break;
+            case 'G':
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+                }
+
+                this->fwd_idx|=2;
+                this->rev_idx|=this->rev_C_setter;
+
+                break;
+            case 'T':
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+                }
+
+
+                this->fwd_idx|=3;
+                this->rev_idx|=this->rev_A_setter;
+
+                break;
+            default:
+                this->idx_i=0;
+                this->fwd_idx=0;
+                this->rev_idx=0;
+
+                break;
+        }
+
+        if(this->idx_i==this->kmer+this->prefixLength)
+        {
+
+            //cerr<<"\tFwd "<<Uint64ToString(this->fwd_idx & this->mask)<<" ~ "<<this->indexToSeq(this->fwd_idx & this->mask)<<endl;
+            //cerr<<"\tRev "<<Uint64ToString(this->rev_idx & this->mask)<<" ~ "<<this->indexToSeq(this->rev_idx & this->mask)<<endl;
+            uint64_t actual_fwd_idx=(this->fwd_idx & this->mask);
+            if(this->prefix_mask){
+                if((actual_fwd_idx&this->prefix_mask->AND_MASK)==this->prefix_mask->OR_MASK){
+                    this->bits.setBit(actual_fwd_idx&(~this->prefix_mask->AND_MASK),1);
+                }
+            }else{
+                this->bits.setBit(actual_fwd_idx,1);
+            }
+
+            uint64_t actual_rev_idx=(this->rev_idx & this->mask);
+            if(this->prefix_mask){
+                if((actual_rev_idx&this->prefix_mask->AND_MASK)==this->prefix_mask->OR_MASK){
+                    this->bits.setBit(actual_rev_idx&(~this->prefix_mask->AND_MASK),1);
+                }
+            }else{
+                this->bits.setBit(actual_rev_idx,1);
+            }
+            
+            this->idx_i--;
+        }
+    }
+
+};
+
+
+
+
+
+
+
+
 class StepwiseSeqSpaceWithMotifs:public SeqSpace
 {   
     private:
@@ -646,6 +714,9 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
     uint64_t rev_T_setter;
     
     SeqBitMask fwd_mask;
+    SeqBitMask *prefix_mask;
+    int prefixLength;
+    //string prefix;
 
     int motifLength;
 
@@ -680,9 +751,25 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
             this->rev_T_setter<<=2;
         }
     }
+    ~StepwiseSeqSpaceWithMotifs(){
+        if(this->prefix_mask){
+            delete this->prefix_mask;
+        }
+    }
+    StepwiseSeqSpaceWithMotifs(int _kmer, string _fwd_motif,string _prefix,int _prefixLength):SeqSpace(_kmer),fwd_mask(_fwd_motif)
+    {
+        prefixLength=_prefixLength;
+        init_StepwiseSeqSpace(_fwd_motif.length());
+        this->motifLength=_fwd_motif.length();
+        cerr<<"_prefix="<<_prefix<<endl;
+        this->prefix_mask=new SeqBitMask(_prefix);
+        cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
+        cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
+        //nucI=0;
+    }
 
 
-    StepwiseSeqSpaceWithMotifs(int _kmer, string _fwd_motif):SeqSpace(_kmer),fwd_mask(_fwd_motif)
+    StepwiseSeqSpaceWithMotifs(int _kmer, string _fwd_motif):SeqSpace(_kmer),fwd_mask(_fwd_motif),prefix_mask(NULL),prefixLength(0)
     {
 
         init_StepwiseSeqSpace(_fwd_motif.length());
@@ -796,7 +883,7 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
                 break;
         }
 
-        //string checkSeq("AAAATATGACTGGG");
+        //string checkSeq("GGCCGACACAAGTGCCATTC");
 
         if(this->idx_i==this->motifLength)//this->kmer)
         {
@@ -804,27 +891,36 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
 
             uint64_t masked_fwd_idx=this->fwd_idx & this->mask;
             if((masked_fwd_idx&(~this->fwd_mask.AND_MASK))==this->fwd_mask.OR_MASK){
-                uint64_t actual_fwd_idx=masked_fwd_idx>>(2*(this->motifLength-this->kmer));
+                uint64_t actual_fwd_idx=masked_fwd_idx>>(2*(this->motifLength-this->kmer-this->prefixLength));
 
                 //check N
                 uint64_t masked_N_idx=this->N_idx & this->mask;
-                uint64_t actual_N_idx=masked_N_idx>>(2*(this->motifLength-this->kmer));
+                uint64_t actual_N_idx=masked_N_idx>>(2*(this->motifLength-this->kmer-this->prefixLength));
 
                 
 
                 if(actual_N_idx==0)
                 {
-                    this->bits.setBit(actual_fwd_idx,1);
-                
-                    /*if(indexToSeq(actual_fwd_idx)==checkSeq){
-                        cerr<<"SET FWD\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
-                        //cerr<<"set Fwd bit"<<endl;
-                        cerr<<"\tthis->fwd_idx\t"<<Uint64ToString(this->fwd_idx)<<"\t"<<indexToSeq64(this->fwd_idx)<<endl;
-                        cerr<<"\tthis->mask\t"<<Uint64ToString(this->mask)<<"\t"<<indexToSeq64(this->mask)<<endl;
-                        cerr<<"\tmasked_fwd_idx\t"<<Uint64ToString(masked_fwd_idx)<<"\t"<<indexToSeq64(masked_fwd_idx)<<endl;
-                        cerr<<"\tactual_fwd_idx\t"<<Uint64ToString(actual_fwd_idx)<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
-                        cerr<<"\tget_bit at\t"<<Uint64ToString(actual_fwd_idx)<<"\t"<<indexToSeq(actual_fwd_idx)<<endl;
-                    }*/
+                    if(this->prefix_mask){
+                        //check if current is within prefix scope
+                        if((actual_fwd_idx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){
+                            //within scope
+                            this->bits.setBit(actual_fwd_idx&this->prefix_mask->AND_MASK,1);
+                            //cerr<<"\tset_bit at\t"<<Uint64ToString(actual_fwd_idx&this->prefix_mask->AND_MASK)<<"\t"<<indexToSeq(actual_fwd_idx&this->prefix_mask->AND_MASK)<<endl;
+                        }
+                    }
+                    else{
+                        this->bits.setBit(actual_fwd_idx,1);
+                    }
+
+                    //if(indexToSeq(actual_fwd_idx,20)==checkSeq){
+                    //cerr<<"SET FWD\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
+                    //cerr<<"set Fwd bit"<<endl;
+                    //cerr<<"\tthis->fwd_idx\t"<<Uint64ToString(this->fwd_idx)<<"\t"<<indexToSeq64(this->fwd_idx)<<endl;
+                    //cerr<<"\tthis->mask\t"<<Uint64ToString(this->mask)<<"\t"<<indexToSeq64(this->mask)<<endl;
+                    //cerr<<"\tmasked_fwd_idx\t"<<Uint64ToString(masked_fwd_idx)<<"\t"<<indexToSeq64(masked_fwd_idx)<<endl;
+                    //cerr<<"\tactual_fwd_idx\t"<<Uint64ToString(actual_fwd_idx)<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
+                    //}
 
                 }
                 else
@@ -843,17 +939,24 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
             uint64_t masked_rev_idx=this->rev_idx & this->mask;
             if((masked_rev_idx&(~this->fwd_mask.AND_MASK))==this->fwd_mask.OR_MASK){
                 //uint64_t actual_rev_idx=masked_rev_idx&(this->mask>>(2*(this->motifLength-this->kmer)));
-                uint64_t actual_rev_idx=masked_rev_idx>>(2*(this->motifLength-this->kmer));
+                uint64_t actual_rev_idx=masked_rev_idx>>(2*(this->motifLength-this->kmer-this->prefixLength));
 
 
                 //check N
                 uint64_t masked_N_idx=this->N_idx & this->mask;
-                uint64_t actual_N_idx=masked_N_idx&(this->mask>>(2*(this->motifLength-this->kmer)));
+                uint64_t actual_N_idx=masked_N_idx&(this->mask>>(2*(this->motifLength-this->kmer-this->prefixLength)));
 
                 if(actual_N_idx==0)
                 {
-                    this->bits.setBit(actual_rev_idx,1);
-
+                    if(this->prefix_mask){
+                        if((actual_rev_idx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){
+                            //in scope
+                            this->bits.setBit(actual_rev_idx&this->prefix_mask->AND_MASK,1);
+                        }
+                    }
+                    else{
+                        this->bits.setBit(actual_rev_idx,1);
+                    }
                     /*if(indexToSeq(actual_rev_idx)==checkSeq){
                         
                         cerr<<"SET REV\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_rev_idx)<<endl;
@@ -895,14 +998,23 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
         return motif+PAM;
     }
 
-    static string getRevMotif(string rcPAM,int kmer){
+    static string getPrefixMaskString(int kmer,string prefixNuc){
+        string S=prefixNuc;
+        for(int i=0;i<kmer-prefixNuc.length();i++){
+            S+="N";
+        }
+
+        return S;
+    }
+
+    /*static string getRevMotif(string rcPAM,int kmer){
         string motif=rcPAM;
         for(int i=0;i<kmer;i++){
             motif+="N";
         }
 
         return motif;
-    }
+    }*/
 
     
 
@@ -984,6 +1096,12 @@ class OffTargetEnumerator:public StepwiseSeqSpace
         }
 
 
+        OffTargetEnumerator(int _kmer, string _inBitStringFileName, int _mthres, string _prefix,bool useGzip=false):StepwiseSeqSpace(_kmer-_prefix.length(),_inBitStringFileName,_prefix,useGzip),mthres(_mthres)
+        {
+            init_OffTargetEnumerator(_kmer,_mthres);
+        }
+
+
         OffTargetEnumerator(int _kmer, string _inBitStringFileName, int _mthres, bool useGzip=false):StepwiseSeqSpace(_kmer,_inBitStringFileName,useGzip),mthres(_mthres)
         {
             init_OffTargetEnumerator(_kmer,_mthres);
@@ -1009,10 +1127,24 @@ class OffTargetEnumerator:public StepwiseSeqSpace
                 results[i]=0;
             }
 
-            
+            cerr<<"A1:"<<Uint64ToString(seqIdx)<<endl;
 
-            if(this->bits.getBit(seqIdx)){
-                results[0]=1;
+            if(this->prefix_mask){
+                
+                cerr<<"A2:"<<Uint64ToString(this->prefix_mask->AND_MASK)<<endl;
+                cerr<<"A3:"<<Uint64ToString(this->prefix_mask->OR_MASK)<<endl;
+                cerr<<"A4:"<<Uint64ToString(seqIdx&(this->prefix_mask->AND_MASK))<<endl;
+
+                if((seqIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){
+                    if(this->bits.getBit(seqIdx&(this->prefix_mask->AND_MASK))){
+                        results[0]=1;
+                    }   
+                }
+            }else{
+
+                if(this->bits.getBit(seqIdx)){
+                    results[0]=1;
+                }
             }
 
             for(vector<SeqBitMask>::iterator i=this->seqBitMasks.begin();i!=this->seqBitMasks.end();i++){
@@ -1036,12 +1168,24 @@ class OffTargetEnumerator:public StepwiseSeqSpace
                 searchIdx&=i->AND_MASK;
                 searchIdx|=i->OR_MASK;
 
-
-                if(searchIdx!=seqIdx && this->bits.getBit(searchIdx)){
-                    results[i->nmismatches]++;
-                    if(__mthres){
-                        if(results[i->nmismatches]>(*__mthres)[i->nmismatches]){
-                            break;
+                if(this->prefix_mask){
+                    if(searchIdx!=seqIdx && ((searchIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK) && this->bits.getBit(searchIdx&this->prefix_mask->AND_MASK)){
+                        results[i->nmismatches]++;
+                        if(__mthres){
+                            if(results[i->nmismatches]>(*__mthres)[i->nmismatches]){
+                                break;
+                            }
+                        }
+                    }
+                }
+                else{
+                
+                    if(searchIdx!=seqIdx && this->bits.getBit(searchIdx)){
+                        results[i->nmismatches]++;
+                        if(__mthres){
+                            if(results[i->nmismatches]>(*__mthres)[i->nmismatches]){
+                                break;
+                            }
                         }
                     }
                 }
@@ -1936,6 +2080,104 @@ int main(int argc,char **argv)
 #endif //__MODE3_WRITERNGG
 
 
+
+#ifdef __MODE3_WRITERNGG_PREFIXED
+
+int main(int argc,char **argv)
+{
+
+    string extra_settings="";
+
+    #ifdef __FAST_IO__
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    extra_settings=" FastIO option=True";
+    #endif //__FAST_IO__
+
+    extra_settings+=" GZIP=True";
+
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
+
+    cerr<<"JACKIE.encodeSeqSpace.prefixed"<<extra_settings<<endl;
+
+
+    if(argc<6){
+        
+        return printUsageAndExit_writer_prefixed(argv[0]);
+    }
+
+
+    string outBitStringFileName=argv[1];
+
+    int kmer=StringUtil::atoi(argv[2]);
+    string prefixNuc=argv[3];
+
+    string PAM=argv[4];
+    if(PAM=="-"){
+        PAM=""; //no PAM
+    }
+    time_t start_time=time(NULL);
+
+
+    #define STARTIDX 5
+
+
+
+    StepwiseSeqSpaceWithMotifs seqspace(kmer-prefixNuc.length(),StepwiseSeqSpaceWithMotifs::getFwdMotif(kmer,PAM),StepwiseSeqSpaceWithMotifs::getPrefixMaskString(kmer,prefixNuc),prefixNuc.length());
+
+    
+    
+    for(int i=STARTIDX;i<argc;i++){
+        
+
+        time_t prev_time=time(NULL);
+        
+        cerr<<"Processing fasta file "<<argv[i]<<endl;
+        FastaFile fastaFile(argv[i]);
+        while (true){
+
+            char c=toupper(fastaFile.readNextNt());
+            if(c=='\0'){
+                break;
+            }else if(c=='>'){
+                cerr<<"Processing sequence "<<fastaFile.seqName<<endl;
+                seqspace.see('>');
+            }else{
+                //cerr<<c<<endl;
+                seqspace.see(c);
+                //cerr<<c<<endl;
+            }
+        }
+
+        time_t now_time=time(NULL);
+        cerr<<"Finish "<<argv[i]<<" in "<<(now_time-prev_time)<<" second(s)"<<endl;
+        
+    }
+
+    time_t now_time=time(NULL);
+    cerr<<"Finish processing all fasta files in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    cerr<<"Start printing SeqSpace"<<endl;
+    time_t prev_time=time(NULL);
+    //seqspace.bits.writeToFile(outBitStringFileName);
+    
+    if(StringUtil::toUpper(outBitStringFileName.substr(outBitStringFileName.length()-2,2))=="GZ")
+        seqspace.bits.writeToFileGZ(outBitStringFileName);
+    else
+        seqspace.bits.writeToFile(outBitStringFileName);
+
+    now_time=time(NULL);
+    cerr<<"Finish printing SeqSpace in "<<(now_time-prev_time)<<" second(s)"<<endl;
+    cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+    return 0;
+    
+
+}
+
+#endif //__MODE3_WRITERNGG_PREFIXED
+
+
+
 #ifdef __MODE3_READER
 
 
@@ -1958,7 +2200,7 @@ int main(int argc,char **argv)
     cerr<<"JACKIE.countSeqNeighbors "<<extra_settings<<endl;
 
 
-    if(argc<3){
+    if(argc<5){
         
         return printUsageAndExit_reader(argv[0]);
     }
@@ -2057,6 +2299,167 @@ int main(int argc,char **argv)
 }
 
 #endif //__MODE3_READER
+
+
+#ifdef __MODE3_READER_PREFIXED
+
+
+int main(int argc,char **argv)
+{
+
+    string extra_settings="";
+
+    #ifdef __FAST_IO__
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    extra_settings+=" FastIO option=True";
+    #endif //__FAST_IO__
+
+    #ifdef __USE_GZIP
+    extra_settings+=" GZIP=True";
+    #endif
+
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    cerr<<"JACKIE.countSeqNeighbors.prefixed "<<extra_settings<<endl;
+
+
+    if(argc<7){
+        
+        return printUsageAndExit_reader_prefixed(argv[0]);
+    }
+    
+    string inBitStringFileName=argv[1];
+
+    int kmer=StringUtil::atoi(argv[2]);
+    int mthres=StringUtil::atoi(argv[3]);
+
+    string searchListFileName=argv[4];
+    
+    string _prefix=argv[5];
+
+    int col0=-1;
+    string sep="";
+    int splitCom0=-1;
+
+    int colForPreviousResult=StringUtil::atoi(argv[6]);
+
+    if(argc>=8){
+        string argv_string(argv[7]);
+        vector<string> v;
+        StringUtil::split(argv_string,",",v);
+        col0=StringUtil::atoi(v[0])-1;
+        if(v.size()>1)
+        {
+            sep=v[1];
+            splitCom0=StringUtil::atoi(v[2])-1;
+        }
+
+    }
+
+
+
+    time_t start_time=time(NULL);
+    time_t now_time=time(NULL);
+    
+    /*#ifdef __USE_GZIP
+    bool useGzip=true;
+    #else
+    bool useGzip=false;
+    #endif*/
+
+    cerr<<"Start reading bitsring file"<<endl;
+    time_t prev_time=time(NULL);
+
+    bool useGzip=(StringUtil::toUpper(inBitStringFileName.substr(inBitStringFileName.length()-2,2))=="GZ");
+   
+    OffTargetEnumerator enumerator(kmer,inBitStringFileName,mthres,_prefix,useGzip);
+
+ 
+
+    now_time=time(NULL);
+    cerr<<"Finish reading in "<<(now_time-prev_time)<<" second(s)"<<endl;
+    prev_time=time(NULL);
+    uint64_t counter=0;
+
+    ifstream fin;
+    fin.open(searchListFileName.c_str());
+
+    uint64_t lino=0;
+    while(!fin.eof()){
+        lino++;
+        if(lino%1000000==1){
+            now_time=time(NULL);
+            cerr<<"processed "<<(lino-1)<<" lines, time elapsed:"<<(now_time-prev_time)<<endl;
+        }
+        string lin;
+        getline(fin,lin);
+        if(lin!=""){
+
+            if(col0>=0){
+                vector<string> fields;
+                StringUtil::split(lin,"\t",fields);
+                string col_value=fields[col0];
+                if(splitCom0>=0){
+                    vector<string> splits;
+                    StringUtil::split(col_value,sep,splits);
+                    enumerator.findOffTargetHits(splits[splitCom0]);
+                }else{
+                    enumerator.findOffTargetHits(col_value);
+                }
+            }else{
+                enumerator.findOffTargetHits(lin);
+            }
+            
+            //cerr<<"print result"<<endl;
+
+            if(colForPreviousResult==0){
+                cout<<lin<<"\t"<<enumerator.getResultString()<<endl;
+            }
+            else
+            {   
+                vector<string> fields;
+                StringUtil::split(lin,"\t",fields);
+                //cerr<<"fields.size()="<<fields.size()<<endl;
+                string prevResultString=fields[fields.size()-1];
+                
+                vector<string> prev_numbers;
+                vector<string> new_numbers;
+                StringUtil::split(prevResultString,"/",prev_numbers);
+                StringUtil::split(enumerator.getResultString(),"/",new_numbers);
+
+                //cerr<<"prev_numbers.size()="<<prev_numbers.size()<<endl;
+                //cerr<<"new_numbers.size()="<<new_numbers.size()<<endl;
+
+                string updated_result_string=StringUtil::str(StringUtil::atoi(prev_numbers[0])+StringUtil::atoi(new_numbers[0]));
+                for(int i=1;i<prev_numbers.size();i++){
+                    updated_result_string+="/"+StringUtil::str(StringUtil::atoi(prev_numbers[i])+StringUtil::atoi(new_numbers[i]));
+                }
+                //cerr<<"updated_result_string"<<updated_result_string<<endl;
+
+                fields[fields.size()-1]=updated_result_string;
+                cout<<fields[0];
+                for(int i=1;i<fields.size();i++){
+                    cout<<"\t"<<fields[i];
+                }
+                cout<<endl;
+
+            }
+        }
+    }
+
+    now_time=time(NULL);
+    cerr<<"Finish finding off-targets for "<<lino<< "lines in "<<(now_time-prev_time)<<" second(s)"<<endl;
+
+    cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+    return 0;
+    
+
+}
+
+#endif //__MODE3_READER_PREFIXED
+
+
+
 
 #ifdef __MODE3_SAMPLER
 
