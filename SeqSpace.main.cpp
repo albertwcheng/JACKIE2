@@ -1127,13 +1127,13 @@ class OffTargetEnumerator:public StepwiseSeqSpace
                 results[i]=0;
             }
 
-            cerr<<"A1:"<<Uint64ToString(seqIdx)<<endl;
+            //cerr<<"A1:"<<Uint64ToString(seqIdx)<<endl;
 
             if(this->prefix_mask){
                 
-                cerr<<"A2:"<<Uint64ToString(this->prefix_mask->AND_MASK)<<endl;
-                cerr<<"A3:"<<Uint64ToString(this->prefix_mask->OR_MASK)<<endl;
-                cerr<<"A4:"<<Uint64ToString(seqIdx&(this->prefix_mask->AND_MASK))<<endl;
+                //cerr<<"A2:"<<Uint64ToString(this->prefix_mask->AND_MASK)<<endl;
+                //cerr<<"A3:"<<Uint64ToString(this->prefix_mask->OR_MASK)<<endl;
+                //cerr<<"A4:"<<Uint64ToString(seqIdx&(this->prefix_mask->AND_MASK))<<endl;
 
                 if((seqIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){
                     if(this->bits.getBit(seqIdx&(this->prefix_mask->AND_MASK))){
