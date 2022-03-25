@@ -170,11 +170,12 @@ Similarly, a "divide-and-conquer" approach for counting sequence neighbors:
 PAM=NGG #PAM=- for no-PAM restrictions, i.e., all possible k-mers
 inputBed=XXXX.bed #change to your input bed file name
 outputBed=YYYY.bed #change to your output bed file name
+sequenceField="4,/,2" #fourth column => split by "/" => second element
 
 date; date +%s;
 PREFIX=AC
 echo "working on $PREFIX"
-echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm $inputBed $PREFIX 0 4,/,2 > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm $inputBed $PREFIX 0 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
 
 bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
 
@@ -184,7 +185,7 @@ for PREFIX in AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG; do
 date; date +%s;
 echo "working on $PREFIX"
 
-echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm tmp.01 $PREFIX 1 4,/,2 > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm tmp.01 $PREFIX 1 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
 
 bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
 
