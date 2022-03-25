@@ -167,9 +167,13 @@ date; date +%s;
 
 Similarly, a "divide-and-conquer" approach for counting sequence neighbors:
 ```
+
+gcRange=0.4,0.6
+cpRange=1,1
+
 PAM=NGG #PAM=- for no-PAM restrictions, i.e., all possible k-mers
-inputBed=XXXX.bed #change to your input bed file name
-outputBed=YYYY.bed #change to your output bed file name
+inputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED      #change to your input bed file name
+outputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED  #change to your output bed file name
 sequenceField="4,/,2" #fourth column => split by "/" => second element
 
 date; date +%s;
