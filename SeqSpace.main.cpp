@@ -56,6 +56,8 @@ int printUsageAndExit_writer_prefixed(string programName)
     return 1;
 }
 
+
+
 int printUsageAndExit_reader(string programName)
 {
     cerr<<programName<<" seqBits(.gz) kmer mthreshold searchFile prefix  [col or col,sep,element]"<<endl;
@@ -65,6 +67,14 @@ int printUsageAndExit_reader(string programName)
 int printUsageAndExit_reader_prefixed(string programName)
 {
     cerr<<programName<<" seqBits(.gz) kmer mthreshold searchFile prefix 0or1:add_to_previous_profile [col or col,sep,element]"<<endl;
+    return 1;
+}
+
+
+
+int printUsageAndExit_reader_pmulti(string programName)
+{
+    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile prefix 0or1:add_to_previous_profile [col or col,sep,element]"<<endl;
     return 1;
 }
 
@@ -584,9 +594,9 @@ class StepwiseSeqSpace:public SeqSpace
         this->prefixLength=_prefix.length();
 
 
-        cerr<<"_prefix="<<StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix)<<endl;
-        cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
-        cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
+        //cerr<<"_prefix="<<StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix)<<endl;
+        //cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
+        //cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
     } 
     
 
@@ -761,10 +771,10 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
         prefixLength=_prefixLength;
         init_StepwiseSeqSpace(_fwd_motif.length());
         this->motifLength=_fwd_motif.length();
-        cerr<<"_prefix="<<_prefix<<endl;
+        //cerr<<"_prefix="<<_prefix<<endl;
         this->prefix_mask=new SeqBitMask(_prefix);
-        cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
-        cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
+        //cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
+        //cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
         //nucI=0;
     }
 
@@ -1021,6 +1031,7 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
 };
 
 
+
 class OffTargetEnumerator:public StepwiseSeqSpace
 {
     class TaskMem{
@@ -1037,14 +1048,14 @@ class OffTargetEnumerator:public StepwiseSeqSpace
     public:
         vector<SeqBitMask> seqBitMasks;
         int mthres;
-        int *results;
+        uint32_t *results;
 
         ~OffTargetEnumerator(){
             delete[] results;
         }
 
         void init_OffTargetEnumerator(int _kmer,int _mthres){
-           results=new int[_mthres];
+           results=new uint32_t[_mthres];
             for(int i=0;i<=_mthres;i++){
                 results[i]=0;
             }
@@ -1201,6 +1212,8 @@ class OffTargetEnumerator:public StepwiseSeqSpace
             }
             return ret;
         }
+
+
 
         /*void enumerateAbsentSitesWithOffTargetProfiles(ostream &os)
         {
@@ -1373,6 +1386,50 @@ class OffTargetEnumerator:public StepwiseSeqSpace
 
 
 };
+
+
+class OffProfileRecord
+{
+    public:
+    
+    vector<uint32_t> offProfiles;
+    inline OffProfileRecord(int mthreshold):offProfiles(mthreshold+1,0){
+
+    }
+    inline OffProfileRecord(const OffTargetEnumerator &ote):offProfiles(ote.results,ote.results+(ote.mthres+1)){
+        
+    }
+    inline void increment(const OffTargetEnumerator &ote){
+        for(int i=0;i<=ote.mthres;i++){
+            this->offProfiles[i]+=ote.results[i];
+        }
+    }
+
+    string getResultString(){
+        string ret;
+        ret=StringUtil::str(offProfiles[0]);
+        for(int i=1;i<offProfiles.size();i++)
+        {
+            ret+="/"+StringUtil::str(offProfiles[i]);
+        }
+        return ret;
+    }
+
+    inline uint32_t get(int nmismatches){
+        return this->offProfiles[nmismatches];
+    }
+    inline void increment(int nmismatches){
+        this->offProfiles[nmismatches]++;
+    }
+    inline void set(int nmismatches,int count){
+        this->offProfiles[nmismatches]=count;
+    }
+    inline uint32_t& operator[](int nmismatches){
+        return this->offProfiles[nmismatches];
+    }
+   
+};
+
 
 #ifdef __SEQSPACE_COMPARE
 int main(int argc,char **argv)
@@ -2299,6 +2356,181 @@ int main(int argc,char **argv)
 }
 
 #endif //__MODE3_READER
+
+
+#ifdef __MODE3_READER_PREFIXED_MULTI
+
+#define COUNTSEQNEIGHBORS_FIRSTPASS 0
+#define COUNTSEQNEIGHBORS_MIDPASS 1
+#define COUNTSEQNEIGHBORS_LASTPASS 2
+
+
+
+int countSeqNeighbors_prefixed_multi_sub(string inBitStringFileName, int kmer, int mthres, string searchListFileName, string _prefix,int col0,string sep,int splitCom0,vector<OffProfileRecord>&offProfiles,int passType)
+{
+    time_t start_time=time(NULL);
+    time_t now_time=time(NULL);
+    cerr<<"Start on "<<_prefix<<endl;
+    cerr<<_prefix<<" : start reading bitsring file"<<endl;
+    time_t prev_time=time(NULL);
+
+    bool useGzip=(StringUtil::toUpper(inBitStringFileName.substr(inBitStringFileName.length()-2,2))=="GZ");
+   
+    OffTargetEnumerator enumerator(kmer,inBitStringFileName,mthres,_prefix,useGzip);
+
+    now_time=time(NULL);
+    cerr<<_prefix<<" : Finish reading in "<<(now_time-prev_time)<<" second(s)"<<endl;
+    prev_time=time(NULL);
+    uint64_t counter=0;
+
+    ifstream fin;
+    fin.open(searchListFileName.c_str());
+
+    uint64_t lino=0;
+
+    uint64_t recordNum=0;
+
+    while(!fin.eof()){
+        lino++;
+        if(lino%1000000==1){
+            now_time=time(NULL);
+            cerr<<_prefix<<" : processed "<<(lino-1)<<" lines, time elapsed:"<<(now_time-prev_time)<<endl;
+        }
+        string lin;
+        getline(fin,lin);
+        if(lin!=""){
+
+            if(col0>=0){
+                vector<string> fields;
+                StringUtil::split(lin,"\t",fields);
+                string col_value=fields[col0];
+                if(splitCom0>=0){
+                    vector<string> splits;
+                    StringUtil::split(col_value,sep,splits);
+                    enumerator.findOffTargetHits(splits[splitCom0]);
+                }else{
+                    enumerator.findOffTargetHits(col_value);
+                }
+            }else{
+                enumerator.findOffTargetHits(lin);
+            }
+
+            switch(passType){
+                case COUNTSEQNEIGHBORS_FIRSTPASS:
+                    offProfiles.push_back(OffProfileRecord(enumerator));
+                break;
+                case COUNTSEQNEIGHBORS_MIDPASS:
+                    offProfiles[recordNum].increment(enumerator);                    
+                break;
+                case COUNTSEQNEIGHBORS_LASTPASS:
+                    offProfiles[recordNum].increment(enumerator);
+                    cout<<lin<<"\t"<<offProfiles[recordNum].getResultString()<<endl; //enumerator.getResultString()<<endl;
+                break;
+            }
+
+            recordNum++;
+
+        }
+    }
+
+    now_time=time(NULL);
+    cerr<<_prefix<<" : Finish finding off-targets for "<<lino<< " lines in "<<(now_time-prev_time)<<" second(s)"<<endl;
+
+    cerr<<_prefix<<" : done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    return 0;
+}
+
+
+int main(int argc,char **argv)
+{
+
+    string extra_settings="";
+
+    #ifdef __FAST_IO__
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    extra_settings+=" FastIO option=True";
+    #endif //__FAST_IO__
+
+    #ifdef __USE_GZIP
+    extra_settings+=" GZIP=True";
+    #endif
+
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    cerr<<"JACKIE.countSeqNeighbors.pmulti "<<extra_settings<<endl;
+
+
+    if(argc<6){
+        
+        return printUsageAndExit_reader_pmulti(argv[0]);
+    }
+    
+    
+
+    string inBitStringFileNames=argv[1]; // /path/to/name.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz
+
+    int kmer=StringUtil::atoi(argv[2]);
+    int mthres=StringUtil::atoi(argv[3]);
+
+    string searchListFileName=argv[4];
+
+    int col0=-1;
+    string sep="";
+    int splitCom0=-1;
+
+
+    if(argc>=6){
+        string argv_string(argv[5]);
+        vector<string> v;
+        StringUtil::split(argv_string,",",v);
+        col0=StringUtil::atoi(v[0])-1;
+        if(v.size()>1)
+        {
+            sep=v[1];
+            splitCom0=StringUtil::atoi(v[2])-1;
+        }
+
+    }
+
+    time_t start_time=time(NULL);
+
+
+    vector<string> nameSplits;
+    StringUtil::split(inBitStringFileNames,"]",nameSplits);
+    string inBitStringSuffix=nameSplits[1];
+    StringUtil::split(nameSplits[0],"[",nameSplits);
+    string inBitStringPrefix=nameSplits[0];
+    StringUtil::split(nameSplits[1],",",nameSplits);
+
+    vector<OffProfileRecord> offProfiles;
+
+    for(int i=0;i<nameSplits.size();i++){
+        int passType;
+        if(i==0){
+            passType=COUNTSEQNEIGHBORS_FIRSTPASS;
+        }
+        else if(i==nameSplits.size()-1){
+            passType=COUNTSEQNEIGHBORS_LASTPASS;
+        }
+        else{
+            passType=COUNTSEQNEIGHBORS_MIDPASS;
+        }
+        string inBitStringFileName=inBitStringPrefix+nameSplits[i]+inBitStringSuffix;
+        
+        countSeqNeighbors_prefixed_multi_sub(inBitStringFileName, kmer, mthres, searchListFileName,  nameSplits[i], col0, sep, splitCom0, offProfiles, passType);
+    }
+
+    time_t now_time=time(NULL);
+    cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    return 0;
+    
+
+}
+
+#endif //__MODE3_READER_PREFIXED_MULTI
+
 
 
 #ifdef __MODE3_READER_PREFIXED

@@ -176,31 +176,10 @@ inputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPatter
 outputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED  #change to your output bed file name
 sequenceField="4,/,2" #fourth column => split by "/" => second element
 
-date; date +%s;
-PREFIX=AA
-echo "working on $PREFIX"
-echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm $inputBed $PREFIX 0 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
 
-bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.pmulti ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].$PAM.seqbits.gz $kmer $mm $inputBed $sequenceField > $outputBed ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.pmulti.$kmer.$PAM.slurmjob.sh
 
-mv tmp.00 tmp.01 
-
-for PREFIX in AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG; do
-date; date +%s;
-echo "working on $PREFIX"
-
-echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm tmp.01 $PREFIX 1 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
-
-bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
-
-mv tmp.00 tmp.01 
-
-done;
-
-mv tmp.01 $outputBed
-
-date; date +%s;
-
+bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.pmulti.$kmer.$PAM.slurmjob.sh
 
 
 ```
@@ -291,6 +270,42 @@ cas_outDir=/path/to/IOForCasOffFinder
 maxNmismatches=3
 seqColExtract=8,/,2
 runCasOFFinderOnSequences.py $BEDFile $seqColExtract $maxNmismatches $pathToGenome $cas_outDir > $BEDFile.cas_off.txt
+
+
+====
+
+gcRange=0.4,0.6
+cpRange=1,1
+
+PAM=NGG #PAM=- for no-PAM restrictions, i.e., all possible k-mers
+inputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED      #change to your input bed file name
+outputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED  #change to your output bed file name
+sequenceField="4,/,2" #fourth column => split by "/" => second element
+
+date; date +%s;
+PREFIX=AA
+echo "working on $PREFIX"
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm $inputBed $PREFIX 0 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
+
+bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
+
+mv tmp.00 tmp.01 
+
+for PREFIX in AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG; do
+date; date +%s;
+echo "working on $PREFIX"
+
+echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.prefixed ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.seqbits.gz $kmer $mm tmp.01 $PREFIX 1 $sequenceField > tmp.00 ; date; date +%s;"  > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh
+
+bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.sh > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stdout 2> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.prefxied.$kmer.$PREFIX.$PAM.slurmjob.stderr
+
+mv tmp.00 tmp.01 
+
+done;
+
+mv tmp.01 $outputBed
+
+date; date +%s;
 
 
 ```
