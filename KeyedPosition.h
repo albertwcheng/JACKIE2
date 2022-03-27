@@ -712,6 +712,7 @@ public:
 	
 };
 
+
 class GenomeNmersEncoder
 {
 public:
@@ -1005,6 +1006,304 @@ public:
 		
 		cerr<<curChrID<<" sequence(s) processed."<<nReads<<" simulated read(s) outputed "<<endl;
 		//cout<<curChrID<<" sequence(s) processed."<<nReads<<" simulated read(s) outputed "<<endl;
+		
+	}
+	
+	
+};
+
+
+
+class GenomeNmersMap
+{
+public:
+
+	int nmersize;
+
+
+	string nmerPattern;
+	
+	int keyStart;
+	int keyEnd;
+	map<NucKey3b/*NucKey*/,vector<Position> > NucKey_Position_Map;
+	map<int/*chrID*/,string/*chromName*/> chrID2chrName_Map;
+	
+	inline ~GenomeNmersMap()
+	{	
+
+	}
+	inline GenomeNmersMap(int _nmersize):nmersize(_nmersize)
+	{
+		keyStart=0;
+		keyEnd=nmersize;
+	}
+
+	inline GenomeNmersMap(string _nmerPattern):nmerPattern(_nmerPattern)
+	{
+		nmersize=nmerPattern.length();
+
+		for(int i=0;i<nmersize;i++){
+			if(nmerPattern[i]=='X'){
+				keyStart=i;
+				break;
+			}
+		}
+
+		for(int i=nmersize-1;i>=0;i--){
+			if(nmerPattern[i]=='X'){
+				keyEnd=i+1;
+				break;
+			}
+		}
+	}
+
+	inline const char* getStrPtr(int i,const string& str)
+	{
+		return str.c_str()+i;
+	}
+
+
+	inline bool acceptPAM(int i,const string& str)
+    {
+        
+		const char* _tmpNmerPattern=this->nmerPattern.c_str();
+        
+        for(int j=i;j<i+nmersize;j++){
+		
+			char thisBase=str[j];
+
+            if(thisBase>'T' || thisBase=='N'){
+
+                return false;
+            }
+            
+			char thisPatternBase=*_tmpNmerPattern;
+
+			if(thisPatternBase!='X' && thisPatternBase!='N'){
+				switch(thisPatternBase){
+					case 'A':
+					case 'C':
+					case 'G':
+					case 'T':
+						if(thisBase!=thisPatternBase){
+							return false;
+						}
+						break;
+					case 'W':
+						if(thisBase!='A' && thisBase!='T'){
+							return false;
+						}
+						break;
+					case 'S':
+						if(thisBase!='C' && thisBase!='G'){
+							return false;
+						}
+						break;
+					case 'M':
+						if(thisBase!='A' && thisBase!='C'){
+							return false;
+						}
+						break;
+					case 'K':
+						if(thisBase!='G' && thisBase!='T'){
+							return false;
+						}
+						break;							
+					case 'R':
+						if(thisBase!='A' && thisBase!='G'){
+							return false;
+						}
+						break;
+					case 'Y':
+						if(thisBase!='C' && thisBase!='T'){
+							return false;
+						}
+						break;
+					case 'B':
+						if(thisBase=='A'){
+							return false;
+						}
+						break;
+					case 'D':
+						if(thisBase=='C'){
+							return false;
+						}
+						break;
+					case 'H':
+						if(thisBase=='G'){
+							return false;
+						}
+						break;
+					case 'V':
+						if(thisBase=='T'){
+							return false;
+						}
+						break;
+					default:
+						return false;
+						break;
+				}
+
+			}
+
+			_tmpNmerPattern++;
+        }
+
+        return true;
+    }
+
+
+    inline bool acceptPAM_NGG(int i,const string& str)
+    {
+        //NGG = 22G 23G
+        
+        for(int j=i;j<i+nmersize;j++){
+            //cerr<<"check "<<str[j]<<" " <<(str[j]>'T' || str[j]=='N')<<endl;
+            if(str[j]>'T' || str[j]=='N'){
+                //lowercase or N
+                //cerr<<"******reject "<<str.substr(i,23)<<endl;
+                return false;
+            }
+            
+            /*f(str[j]=='n' || str[j]=='N'){
+                //N
+                //cerr<<"******reject "<<str.substr(i,23)<<endl;
+                return false;
+            }*/
+            
+            
+        }
+        
+        
+        return (str[i+nmersize-2]=='G' || str[i+nmersize-2]=='g') && (str[i+nmersize-1]=='G' || str[i+nmersize-1]=='g');
+    }
+    
+	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint="",bool autoUpperCase=true)
+	{
+		int curChrID=0;
+		FastaFile ffile(fastaFileName,autoUpperCase);
+		int nReads=0;
+		
+		int constraintLength=prefixConstraint.length();
+		
+		while(ffile.readEntry())
+		{
+			int nCurReads=0;
+			curChrID++;
+			
+			
+			cerr<<"Encoding "<<curChrID<<":"<<ffile.seqName<<" of length "<<ffile.seq.length()<<endl;
+			chrID2chrName_Map.insert(map<int,string>::value_type(curChrID,ffile.seqName));
+			
+			int seqLength=ffile.seq.length();
+			if(seqLength<nmersize)
+			{
+				cerr<<"Ignored: sequence of "<<ffile.seqName<<" has length smaller than nmersize"<<endl;
+				cerr<<": ignored: sequence has length smaller then nmersize "<<endl;
+				continue;
+			}
+			
+                
+			for(int i=0;i<=seqLength-nmersize;i++)
+			{
+                
+                
+                if(!acceptPAM(i,ffile.seq)){
+                    continue;
+                }
+                
+                //cerr<<"accept "<<ffile.seq.substr(i,23)<<endl;
+                
+				
+				if(prefixConstraint!="" && ffile.seq.substr(i+keyStart,constraintLength)!=prefixConstraint)
+				{
+					continue;
+				}
+				
+				
+				KeyedPosition kpos(getStrPtr(i+keyStart,ffile.seq),keyEnd-keyStart,curChrID,i+keyStart+1,true); //nmersize-3 to discount the PAM sequence
+                
+				map<NucKey3b/*NucKey*/,vector<Position> >::iterator keyed_vector_I=NucKey_Position_Map.find(kpos.b);
+				if(keyed_vector_I==NucKey_Position_Map.end()){
+					NucKey_Position_Map.insert(map<NucKey3b/*NucKey*/,vector<Position> >::value_type(kpos.b,vector<Position>(1,(Position&)kpos)));
+				}else{
+					keyed_vector_I->second.push_back((Position&)kpos);
+				}
+				
+				
+
+
+				nCurReads++;
+				
+				
+				
+				
+				
+			}
+			
+			
+			
+			string rseq=reverse_complement(ffile.seq);
+			
+			
+			for(int i=0;i<=seqLength-nmersize;i++)
+			{
+
+                if(!acceptPAM(i,rseq)){
+                    continue;
+                }
+                
+                //cerr<<"accept "<<rseq.substr(i,23)<<endl;
+                
+
+				
+				if(prefixConstraint!="" && rseq.substr(i+keyStart,constraintLength)!=prefixConstraint)
+				{
+					continue;
+				}
+				
+                
+				KeyedPosition kpos(getStrPtr(i+keyStart,rseq),keyEnd-keyStart,curChrID,seqLength-i-keyEnd+1/*seqLength-nmersize-i+1+3*/,false); //nmersize-3  seqLength-nmersize-i+1+3
+				
+				map<NucKey3b/*NucKey*/,vector<Position> >::iterator keyed_vector_I=NucKey_Position_Map.find(kpos.b);
+				if(keyed_vector_I==NucKey_Position_Map.end()){
+					NucKey_Position_Map.insert(map<NucKey3b/*NucKey*/,vector<Position> >::value_type(kpos.b,vector<Position>(1,(Position&)kpos)));
+				}else{
+					keyed_vector_I->second.push_back((Position&)kpos);
+				}
+                
+
+				nCurReads++;
+				
+				
+				
+				
+			}			
+			
+			cerr<<" outputing "<<nCurReads<<" reads with prefixConstraint "<<prefixConstraint<<endl;
+			nReads+=nCurReads;
+			
+		}
+
+
+		for(map<NucKey3b/*NucKey*/,vector<Position> >::iterator i=NucKey_Position_Map.begin();i!=NucKey_Position_Map.end();i++){
+			for(vector<Position>::iterator j=i->second.begin();j!=i->second.end();j++){
+				string seq=Key3b2Nuc(i->first);
+				int start0=j->getPos()-1;
+        		int end1=start0+seq.length();
+       			char strand=(j->isForward()?'+':'-');
+				int freq=i->second.size();
+				cout<<chrID2chrName_Map[j->chrID]<<"\t"<<start0<<"\t"<<end1<<"\t"<<i->first<<"."<<freq<<"/"<<seq<<"\t"<<freq<<"\t"<<strand<<endl;
+				
+			}
+		}
+
+
+		
+		cerr<<curChrID<<" sequence(s) processed."<<nReads<<" simulated read(s) outputed "<<endl;
+		//cout<<curChrID<<" sequence(s) processed."<<nReads<<" simulated read(s) outputed "<<endl;
+
+		
 		
 	}
 	

@@ -51,12 +51,18 @@ void printFGHelp(const char* programname)
 	cerr<<"Usage:"<<programname<<" ";
 	cerr<<"fasta output_prefix output_suffix prefixLength outchrRef prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tGenerete binary files of simulated reads binned by prefix (only those with prefix2)"<<endl;
-	#else
-		#ifdef __SORTTOBED_MAIN__
+	#endif
+
+	#ifdef __SORTTOBED_MAIN__
 	cerr<<"Usage:"<<programname<<" ";
 	cerr<<"chrRef binaryUnfold outBedfile thresholdLow thresholdHigh(=0 for no upperbound)"<<endl;
 	cerr<<"\tOutput bed files for reads occuring [thresholdLow,thresholdHigh] inclusive times "<<endl;
-   		#endif
+   	#endif	
+		
+	#ifdef __JACKIE_MAP__
+	cerr<<"Usage:"<<programname<<" ";
+	cerr<<"fasta prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
+	cerr<<"\tsort genome by k-mer sequences"<<endl;
 	#endif
 
 	
@@ -111,6 +117,20 @@ void foldGenomics_generateBinary4_new(int argc,const char** argv)
 	
 	GenomeNmersEncoder encoder(argv[2],argv[3],StringUtil::atoi(argv[4]),argv[5],argv[8]);
 	encoder.transferFromFastaFile(argv[1],argv[6],argv[7][0]=='N' || argv[7][0]=='n' );
+	
+}
+
+
+void JACKIE_mapSeq(int argc,const char** argv)
+{
+	if(argc<5)
+	{
+		printFGHelp(argv[0]);
+		return;
+	}
+	
+	GenomeNmersMap mapper(argv[4]);
+	mapper.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' );
 	
 }
 
@@ -617,29 +637,22 @@ int main(int argc, const char **argv)
 {
 
 	cerr<<"JACKIE (Jackie & Albert's CRISPR k-mer instance enumerator) v2.0"<<endl;
+	cerr<<"[Built:"<<__DATE__<<" "<<__TIME__<<"]"<<endl;	
 	#ifdef __BIN_MAIN__
 	cerr<<"Subroutine JACKIE.bin"<<endl;
+	foldGenomics_generateBinary4_new(argc,argv);
 	#endif
-	#ifdef __SORTTOBED_MAIN__
-	cerr<<"[Built:"<<__DATE__<<" "<<__TIME__<<"]"<<endl;
-	#endif
-	
 
-	if(argc<2 || !strcmp(argv[1],"-h"))
-	{
-		printFGHelp(argv[0]);
-	}
-	else{
-		#ifdef __BIN_MAIN__
-		foldGenomics_generateBinary4_new(argc,argv);
-		#else
-			#ifdef __SORTTOBED_MAIN__
-			foldGenomics_foldToBed_stdsort_new(argc,argv);
-			#else
-			cerr<<"error in compilation"<<endl;
-			#endif
-		#endif
-	}
+	#ifdef __SORTTOBED_MAIN__
+	cerr<<"Subroutine JACKIE.sortToBed"<<endl;
+	foldGenomics_foldToBed_stdsort_new(argc,argv);
+	#endif
+
+	#ifdef __JACKIE_MAP__
+	cerr<<"Subroutine JACKIE.map"<<endl;
+	JACKIE_mapSeq(argc,argv);
+	#endif
+
 
 	cerr<<"<Done>"<<endl;
 	return 0;
