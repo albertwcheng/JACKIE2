@@ -1524,21 +1524,63 @@ public:
         return (str[i+nmersize-2]=='G' || str[i+nmersize-2]=='g') && (str[i+nmersize-1]=='G' || str[i+nmersize-1]=='g');
     }
     
-	void outputKP(int freq,vector<KeyedPosition>& store){
-
-		string seq=Key3b2Nuc(store[0].b);
+	void outputKP(int freq,vector<Position>& store,const KeyedPosition&preKP){
+		string seq=Key3b2Nuc(preKP.b);
+		int seqLength=seq.length();
+		
 		for(int i=0;i<store.size();i++){
 	
 			int start0=store[i].getPos()-1;
-			int end1=start0+seq.length();
+			int end1=start0+seqLength;
 			char strand=(store[i].isForward()?'+':'-');
 			
-			cout<<chrID2chrName_Map[store[i].chrID]<<"\t"<<start0<<"\t"<<end1<<"\t"<<store[0].b<<"."<<freq<<"/"<<seq<<"\t"<<freq<<"\t"<<strand<<endl;
+			cout<<chrID2chrName_Map[store[i].chrID]<<"\t"<<start0<<"\t"<<end1<<"\t"<<preKP.b<<"."<<freq<<"/"<<seq<<"\t"<<freq<<"\t"<<strand<<endl;
 		}
 	}
 
+	void outputKPcluster(int freq,vector<Position>& store,const KeyedPosition&preKP){
+		string seq=Key3b2Nuc(preKP.b);
+		int seqLength=seq.length();
+		bool sameChr=true;
+		
+		std:sort(store.begin(),store.end());
+		vector<Position>&sortedPositions=store;
+		int firstChrID=sortedPositions[0].chrID;
+		string firstStrand=sortedPositions[0].getStrand();
+		int firstStart0=sortedPositions[0].getPos()-1;
 
-	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint,bool autoUpperCase)
+		string blockStarts="0";
+		string blockLen=StringUtil::str(seqLength);
+		string blockLengths=blockLen;
+
+		for(int x=1;x<sortedPositions.size();x++){
+			Position& thisPos=sortedPositions[x];
+			if(thisPos.chrID!=firstChrID){
+				sameChr=false;
+				break;
+			}
+			if(thisPos.getStrand()!=firstStrand){
+				firstStrand=".";
+			}
+
+			if(sortedPositions[x].getPos()-sortedPositions[x-1].getPos()<seqLength){
+				sameChr=false; //illegal block, overlap!
+				break;
+			}
+			blockStarts+=","+StringUtil::str(thisPos.getPos()-1-firstStart0);
+			blockLengths+=","+blockLen;
+		}
+
+		if(sameChr){
+			int lastEnd1=(seq.length()+sortedPositions[sortedPositions.size()-1].getPos()-1);
+			cout<<chrID2chrName_Map[firstChrID]<<"\t"<<firstStart0<<"\t"<<lastEnd1
+				<<"\t"<<preKP.b<<"."<<sortedPositions.size()<<"/"<<seq<<"/k="<<sortedPositions.size()<<"/s="<<(lastEnd1-firstStart0)
+				<<"\t"<<sortedPositions.size()<<"\t"<<firstStrand<<"\t"<<firstStart0<<"\t"<<lastEnd1<<"\t0,0,0\t"<<sortedPositions.size()<<"\t"<<blockLengths<<"\t"<<blockStarts<<endl;
+		}
+
+	}
+
+	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint,bool autoUpperCase,bool collapseSameChromosomeToExtendedBed)
 	{
 		int curChrID=0;
 		FastaFile ffile(fastaFileName,autoUpperCase);
@@ -1640,7 +1682,7 @@ public:
 
 		KeyedPosition prePos=kps[0];
 		
-		vector<KeyedPosition> store;
+		vector<Position> store;
 		
 		store.push_back(prePos);
 		int freq=1;
@@ -1658,9 +1700,11 @@ public:
 			else
 			{
 
-					
-				outputKP(freq,store);
-					
+				if(collapseSameChromosomeToExtendedBed){
+					outputKPcluster(freq,store,prePos);
+				}else{
+					outputKP(freq,store,prePos);
+				}	
 				fEntries++;
 
 				
@@ -1674,7 +1718,11 @@ public:
 		}
 		
 
-		outputKP(freq,store);
+		if(collapseSameChromosomeToExtendedBed){
+			outputKPcluster(freq,store,prePos);
+		}else{
+			outputKP(freq,store,prePos);
+		}	
 			
 		fEntries++;
 		

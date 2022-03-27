@@ -68,7 +68,7 @@ void printFGHelp(const char* programname)
 
 	#ifdef __JACKIE_VECTOR__
 	cerr<<"Usage:"<<programname<<" ";
-	cerr<<"fasta prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
+	cerr<<"fasta prefix2 ignoreLowercaseSeq(y/n) (singles/clusters) kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tsort genome by k-mer sequences"<<endl;
 	#endif
 	
@@ -142,14 +142,14 @@ void JACKIE_mapSeq(int argc,const char** argv)
 
 void JACKIE_vectorSeq(int argc,const char** argv)
 {
-	if(argc<5)
+	if(argc<6)
 	{
 		printFGHelp(argv[0]);
 		return;
 	}
 	
-	GenomeNmersVector vect(argv[4]);
-	vect.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' );
+	GenomeNmersVector vect(argv[5]);
+	vect.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' , !strcmp(argv[4],"clusters") );
 	
 }
 
