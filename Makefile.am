@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-bin_PROGRAMS = JACKIE.bin JACKIE.sortToBed JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.encodeSeqSpaceNGG.mmap JACKIE.createMmapFile JACKIE.encodeSeqSpace.prefixed JACKIE.countSeqNeighbors.prefixed JACKIE.countSeqNeighbors.pmulti JACKIE.map
+bin_PROGRAMS = JACKIE.bin JACKIE.sortToBed JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.encodeSeqSpaceNGG.mmap JACKIE.createMmapFile JACKIE.encodeSeqSpace.prefixed JACKIE.countSeqNeighbors.prefixed JACKIE.countSeqNeighbors.pmulti JACKIE.map JACKIE.vector
 bin_SCRIPTS = outbedForPrefixJob.sh chainExonBedsToTranscriptBed.py removeIllegalBlockEntries.py fastjoinBedByOverlap.py runCasOFFinderOnSequences.py filterTableForZFableSeq.py filterTableForZFableSeqAndCopyNum.py filterPAMFoldGC.py
 JACKIE_bin_SOURCES = JACKIE.main.cpp
 JACKIE_bin_CPPFLAGS = -O3 -D__FAST_IO__ -D__BIN_MAIN__
@@ -30,3 +30,5 @@ JACKIE_countSeqNeighbors_pmulti_CPPFLAGS = -O3 -D__USE_GZIP -D__FAST_IO__ -D__MO
 JACKIE_countSeqNeighbors_pmulti_SOURCES = SeqSpace.main.cpp
 JACKIE_map_SOURCES = JACKIE.main.cpp
 JACKIE_map_CPPFLAGS = -O3 -D__FAST_IO__ -D__JACKIE_MAP__
+JACKIE_vector_SOURCES = JACKIE.main.cpp
+JACKIE_vector_CPPFLAGS = -O3 -D__FAST_IO__ -D__JACKIE_VECTOR__
