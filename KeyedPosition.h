@@ -57,6 +57,11 @@ public:
 	{
 		return pos>0;
 	}
+	inline string getStrand() const
+	{
+		return (isForward()?"+":"-");
+	}
+
 	inline bool operator > (const Position& right) const
 	{
 		if(chrID==right.chrID)
@@ -1178,7 +1183,7 @@ public:
         return (str[i+nmersize-2]=='G' || str[i+nmersize-2]=='g') && (str[i+nmersize-1]=='G' || str[i+nmersize-1]=='g');
     }
     
-	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint="",bool autoUpperCase=true)
+	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint,bool autoUpperCase,bool collapseSameChromosomeToExtendedBed)
 	{
 		int curChrID=0;
 		FastaFile ffile(fastaFileName,autoUpperCase);
@@ -1287,14 +1292,58 @@ public:
 
 
 		for(map<NucKey3b/*NucKey*/,vector<Position> >::iterator i=NucKey_Position_Map.begin();i!=NucKey_Position_Map.end();i++){
-			for(vector<Position>::iterator j=i->second.begin();j!=i->second.end();j++){
-				string seq=Key3b2Nuc(i->first);
-				int start0=j->getPos()-1;
-        		int end1=start0+seq.length();
-       			char strand=(j->isForward()?'+':'-');
-				int freq=i->second.size();
-				cout<<chrID2chrName_Map[j->chrID]<<"\t"<<start0<<"\t"<<end1<<"\t"<<i->first<<"."<<freq<<"/"<<seq<<"\t"<<freq<<"\t"<<strand<<endl;
-				
+			string seq=Key3b2Nuc(i->first);
+			int seqLength=seq.length();
+			if(collapseSameChromosomeToExtendedBed){
+
+				bool sameChr=true;
+
+				std:sort(i->second.begin(),i->second.end());
+				vector<Position>&sortedPositions=i->second;
+				int firstChrID=sortedPositions[0].chrID;
+				string firstStrand=sortedPositions[0].getStrand();
+				int firstStart0=sortedPositions[0].getPos()-1;
+
+				string blockStarts="0";
+				string blockLen=StringUtil::str(seqLength);
+				string blockLengths=blockLen;
+
+				for(int x=1;x<sortedPositions.size();x++){
+					Position& thisPos=sortedPositions[x];
+					if(thisPos.chrID!=firstChrID){
+						sameChr=false;
+						break;
+					}
+					if(thisPos.getStrand()!=firstStrand){
+						firstStrand=".";
+					}
+
+					if(sortedPositions[x].getPos()-sortedPositions[x-1].getPos()<seqLength){
+						sameChr=false; //illegal block, overlap!
+						break;
+					}
+					blockStarts+=","+StringUtil::str(thisPos.getPos()-1-firstStart0);
+					blockLengths+=","+blockLen;
+				}
+
+				if(sameChr){
+					int lastEnd1=(seq.length()+sortedPositions[sortedPositions.size()-1].getPos()-1);
+					cout<<chrID2chrName_Map[firstChrID]<<"\t"<<firstStart0<<"\t"<<lastEnd1
+						<<"\t"<<i->first<<"."<<sortedPositions.size()<<"/"<<seq<<"/k="<<sortedPositions.size()<<"/s="<<(lastEnd1-firstStart0)
+						<<"\t"<<sortedPositions.size()<<"\t"<<firstStrand<<"\t"<<firstStart0<<"\t"<<lastEnd1<<"\t0,0,0\t"<<sortedPositions.size()<<"\t"<<blockLengths<<"\t"<<blockStarts<<endl;
+				}
+
+
+			}else{
+				for(vector<Position>::iterator j=i->second.begin();j!=i->second.end();j++){
+					
+					int start0=j->getPos()-1;
+					int end1=start0+seq.length();
+					char strand=(j->isForward()?'+':'-');
+					int freq=i->second.size();
+					cout<<chrID2chrName_Map[j->chrID]<<"\t"<<start0<<"\t"<<end1<<"\t"<<i->first<<"."<<freq<<"/"<<seq<<"\t"<<freq<<"\t"<<strand<<endl;
+					
+				}
 			}
 		}
 
@@ -1489,7 +1538,7 @@ public:
 	}
 
 
-	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint="",bool autoUpperCase=true)
+	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint,bool autoUpperCase)
 	{
 		int curChrID=0;
 		FastaFile ffile(fastaFileName,autoUpperCase);

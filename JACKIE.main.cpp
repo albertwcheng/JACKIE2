@@ -61,7 +61,7 @@ void printFGHelp(const char* programname)
 		
 	#ifdef __JACKIE_MAP__
 	cerr<<"Usage:"<<programname<<" ";
-	cerr<<"fasta prefix2 ignoreLowercaseSeq kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
+	cerr<<"fasta prefix2 ignoreLowercaseSeq(y/n) (singles/clusters) kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tsort genome by k-mer sequences"<<endl;
 	#endif
 
@@ -129,14 +129,14 @@ void foldGenomics_generateBinary4_new(int argc,const char** argv)
 
 void JACKIE_mapSeq(int argc,const char** argv)
 {
-	if(argc<5)
+	if(argc<6)
 	{
 		printFGHelp(argv[0]);
 		return;
 	}
 	
-	GenomeNmersMap mapper(argv[4]);
-	mapper.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' );
+	GenomeNmersMap mapper(argv[5]);
+	mapper.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' , !strcmp(argv[4],"clusters"));
 	
 }
 
