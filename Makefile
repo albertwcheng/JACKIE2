@@ -91,14 +91,10 @@ bin_PROGRAMS = JACKIE.bin$(EXEEXT) JACKIE.sortToBed$(EXEEXT) \
 	JACKIE.encodeSeqSpaceNGG$(EXEEXT) \
 	JACKIE.countSeqNeighbors$(EXEEXT) \
 	JACKIE.encodeSeqSpace$(EXEEXT) \
-	JACKIE.encodeSeqSpaceNGG.mmap$(EXEEXT) \
-	JACKIE.createMmapFile$(EXEEXT) \
 	JACKIE.encodeSeqSpace.prefixed$(EXEEXT) \
-	JACKIE.encodeSeqSpace.prefixed.offsitecounts$(EXEEXT) \
-	JACKIE.countSeqNeighbors.prefixed$(EXEEXT) \
+	JACKIE.encodeSeqCountDatabase$(EXEEXT) \
 	JACKIE.countSeqNeighbors.pmulti$(EXEEXT) \
-	JACKIE.countSeqNeighbors.pmulti.offsitecounts$(EXEEXT) \
-	JACKIE.map$(EXEEXT) JACKIE.vector$(EXEEXT)
+	JACKIE.countOffSites$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -116,6 +112,12 @@ PROGRAMS = $(bin_PROGRAMS)
 am_JACKIE_bin_OBJECTS = JACKIE_bin-JACKIE.main.$(OBJEXT)
 JACKIE_bin_OBJECTS = $(am_JACKIE_bin_OBJECTS)
 JACKIE_bin_LDADD = $(LDADD)
+am_JACKIE_countOffSites_OBJECTS =  \
+	JACKIE_countOffSites-SeqSpace.main.$(OBJEXT)
+JACKIE_countOffSites_OBJECTS = $(am_JACKIE_countOffSites_OBJECTS)
+JACKIE_countOffSites_LDADD = $(LDADD)
+JACKIE_countOffSites_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(JACKIE_countOffSites_LDFLAGS) $(LDFLAGS) -o $@
 am_JACKIE_countSeqNeighbors_OBJECTS =  \
 	JACKIE_countSeqNeighbors-SeqSpace.main.$(OBJEXT)
 JACKIE_countSeqNeighbors_OBJECTS =  \
@@ -131,26 +133,14 @@ JACKIE_countSeqNeighbors_pmulti_LDADD = $(LDADD)
 JACKIE_countSeqNeighbors_pmulti_LINK = $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(JACKIE_countSeqNeighbors_pmulti_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_JACKIE_countSeqNeighbors_pmulti_offsitecounts_OBJECTS = JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.$(OBJEXT)
-JACKIE_countSeqNeighbors_pmulti_offsitecounts_OBJECTS =  \
-	$(am_JACKIE_countSeqNeighbors_pmulti_offsitecounts_OBJECTS)
-JACKIE_countSeqNeighbors_pmulti_offsitecounts_LDADD = $(LDADD)
-JACKIE_countSeqNeighbors_pmulti_offsitecounts_LINK = $(CXXLD) \
-	$(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(JACKIE_countSeqNeighbors_pmulti_offsitecounts_LDFLAGS) \
+am_JACKIE_encodeSeqCountDatabase_OBJECTS =  \
+	JACKIE_encodeSeqCountDatabase-SeqSpace.main.$(OBJEXT)
+JACKIE_encodeSeqCountDatabase_OBJECTS =  \
+	$(am_JACKIE_encodeSeqCountDatabase_OBJECTS)
+JACKIE_encodeSeqCountDatabase_LDADD = $(LDADD)
+JACKIE_encodeSeqCountDatabase_LINK = $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(JACKIE_encodeSeqCountDatabase_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_JACKIE_countSeqNeighbors_prefixed_OBJECTS =  \
-	JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.$(OBJEXT)
-JACKIE_countSeqNeighbors_prefixed_OBJECTS =  \
-	$(am_JACKIE_countSeqNeighbors_prefixed_OBJECTS)
-JACKIE_countSeqNeighbors_prefixed_LDADD = $(LDADD)
-JACKIE_countSeqNeighbors_prefixed_LINK = $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(JACKIE_countSeqNeighbors_prefixed_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_JACKIE_createMmapFile_OBJECTS =  \
-	JACKIE_createMmapFile-CreateMmapFile_main.$(OBJEXT)
-JACKIE_createMmapFile_OBJECTS = $(am_JACKIE_createMmapFile_OBJECTS)
-JACKIE_createMmapFile_LDADD = $(LDADD)
 am_JACKIE_encodeSeqSpace_OBJECTS =  \
 	JACKIE_encodeSeqSpace-SeqSpace.main.$(OBJEXT)
 JACKIE_encodeSeqSpace_OBJECTS = $(am_JACKIE_encodeSeqSpace_OBJECTS)
@@ -165,14 +155,6 @@ JACKIE_encodeSeqSpace_prefixed_LDADD = $(LDADD)
 JACKIE_encodeSeqSpace_prefixed_LINK = $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(JACKIE_encodeSeqSpace_prefixed_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_JACKIE_encodeSeqSpace_prefixed_offsitecounts_OBJECTS = JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.$(OBJEXT)
-JACKIE_encodeSeqSpace_prefixed_offsitecounts_OBJECTS =  \
-	$(am_JACKIE_encodeSeqSpace_prefixed_offsitecounts_OBJECTS)
-JACKIE_encodeSeqSpace_prefixed_offsitecounts_LDADD = $(LDADD)
-JACKIE_encodeSeqSpace_prefixed_offsitecounts_LINK = $(CXXLD) \
-	$(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(JACKIE_encodeSeqSpace_prefixed_offsitecounts_LDFLAGS) \
-	$(LDFLAGS) -o $@
 am_JACKIE_encodeSeqSpaceNGG_OBJECTS =  \
 	JACKIE_encodeSeqSpaceNGG-SeqSpace.main.$(OBJEXT)
 JACKIE_encodeSeqSpaceNGG_OBJECTS =  \
@@ -180,23 +162,9 @@ JACKIE_encodeSeqSpaceNGG_OBJECTS =  \
 JACKIE_encodeSeqSpaceNGG_LDADD = $(LDADD)
 JACKIE_encodeSeqSpaceNGG_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(JACKIE_encodeSeqSpaceNGG_LDFLAGS) $(LDFLAGS) -o $@
-am_JACKIE_encodeSeqSpaceNGG_mmap_OBJECTS =  \
-	JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.$(OBJEXT)
-JACKIE_encodeSeqSpaceNGG_mmap_OBJECTS =  \
-	$(am_JACKIE_encodeSeqSpaceNGG_mmap_OBJECTS)
-JACKIE_encodeSeqSpaceNGG_mmap_LDADD = $(LDADD)
-JACKIE_encodeSeqSpaceNGG_mmap_LINK = $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(JACKIE_encodeSeqSpaceNGG_mmap_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_JACKIE_map_OBJECTS = JACKIE_map-JACKIE.main.$(OBJEXT)
-JACKIE_map_OBJECTS = $(am_JACKIE_map_OBJECTS)
-JACKIE_map_LDADD = $(LDADD)
 am_JACKIE_sortToBed_OBJECTS = JACKIE_sortToBed-JACKIE.main.$(OBJEXT)
 JACKIE_sortToBed_OBJECTS = $(am_JACKIE_sortToBed_OBJECTS)
 JACKIE_sortToBed_LDADD = $(LDADD)
-am_JACKIE_vector_OBJECTS = JACKIE_vector-JACKIE.main.$(OBJEXT)
-JACKIE_vector_OBJECTS = $(am_JACKIE_vector_OBJECTS)
-JACKIE_vector_LDADD = $(LDADD)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -241,19 +209,14 @@ DEFAULT_INCLUDES = -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po \
+	./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po \
-	./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Po \
-	./$(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Po \
-	./$(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Po \
+	./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_encodeSeqSpace-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po \
-	./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po \
-	./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Po \
-	./$(DEPDIR)/JACKIE_map-JACKIE.main.Po \
-	./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po \
-	./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
+	./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
@@ -272,29 +235,22 @@ AM_V_CXXLD = $(am__v_CXXLD_$(V))
 am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countSeqNeighbors_SOURCES) \
-	$(JACKIE_countSeqNeighbors_pmulti_SOURCES) \
-	$(JACKIE_countSeqNeighbors_pmulti_offsitecounts_SOURCES) \
-	$(JACKIE_countSeqNeighbors_prefixed_SOURCES) \
-	$(JACKIE_createMmapFile_SOURCES) \
-	$(JACKIE_encodeSeqSpace_SOURCES) \
-	$(JACKIE_encodeSeqSpace_prefixed_SOURCES) \
-	$(JACKIE_encodeSeqSpace_prefixed_offsitecounts_SOURCES) \
-	$(JACKIE_encodeSeqSpaceNGG_SOURCES) \
-	$(JACKIE_encodeSeqSpaceNGG_mmap_SOURCES) $(JACKIE_map_SOURCES) \
-	$(JACKIE_sortToBed_SOURCES) $(JACKIE_vector_SOURCES)
-DIST_SOURCES = $(JACKIE_bin_SOURCES) \
+SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
 	$(JACKIE_countSeqNeighbors_SOURCES) \
 	$(JACKIE_countSeqNeighbors_pmulti_SOURCES) \
-	$(JACKIE_countSeqNeighbors_pmulti_offsitecounts_SOURCES) \
-	$(JACKIE_countSeqNeighbors_prefixed_SOURCES) \
-	$(JACKIE_createMmapFile_SOURCES) \
+	$(JACKIE_encodeSeqCountDatabase_SOURCES) \
 	$(JACKIE_encodeSeqSpace_SOURCES) \
 	$(JACKIE_encodeSeqSpace_prefixed_SOURCES) \
-	$(JACKIE_encodeSeqSpace_prefixed_offsitecounts_SOURCES) \
 	$(JACKIE_encodeSeqSpaceNGG_SOURCES) \
-	$(JACKIE_encodeSeqSpaceNGG_mmap_SOURCES) $(JACKIE_map_SOURCES) \
-	$(JACKIE_sortToBed_SOURCES) $(JACKIE_vector_SOURCES)
+	$(JACKIE_sortToBed_SOURCES)
+DIST_SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
+	$(JACKIE_countSeqNeighbors_SOURCES) \
+	$(JACKIE_countSeqNeighbors_pmulti_SOURCES) \
+	$(JACKIE_encodeSeqCountDatabase_SOURCES) \
+	$(JACKIE_encodeSeqSpace_SOURCES) \
+	$(JACKIE_encodeSeqSpace_prefixed_SOURCES) \
+	$(JACKIE_encodeSeqSpaceNGG_SOURCES) \
+	$(JACKIE_sortToBed_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -454,18 +410,18 @@ JACKIE_createMmapFile_SOURCES = CreateMmapFile_main.cpp
 JACKIE_encodeSeqSpace_prefixed_LDFLAGS = -lz
 JACKIE_encodeSeqSpace_prefixed_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITERNGG_PREFIXED
 JACKIE_encodeSeqSpace_prefixed_SOURCES = SeqSpace.main.cpp
-JACKIE_encodeSeqSpace_prefixed_offsitecounts_LDFLAGS = -lz
-JACKIE_encodeSeqSpace_prefixed_offsitecounts_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITERNGG_PREFIXED_OFFSITECOUNTS
-JACKIE_encodeSeqSpace_prefixed_offsitecounts_SOURCES = SeqSpace.main.cpp
+JACKIE_encodeSeqCountDatabase_LDFLAGS = -lz
+JACKIE_encodeSeqCountDatabase_CPPFLAGS = -O3 -D__FAST_IO__ -D__MODE3_WRITERNGG_PREFIXED_OFFSITECOUNTS
+JACKIE_encodeSeqCountDatabase_SOURCES = SeqSpace.main.cpp
 JACKIE_countSeqNeighbors_prefixed_LDFLAGS = -lz
 JACKIE_countSeqNeighbors_prefixed_CPPFLAGS = -O3 -D__USE_GZIP -D__FAST_IO__ -D__MODE3_READER_PREFIXED
 JACKIE_countSeqNeighbors_prefixed_SOURCES = SeqSpace.main.cpp
 JACKIE_countSeqNeighbors_pmulti_LDFLAGS = -lz
 JACKIE_countSeqNeighbors_pmulti_CPPFLAGS = -O3 -D__USE_GZIP -D__FAST_IO__ -D__MODE3_READER_PREFIXED_MULTI
 JACKIE_countSeqNeighbors_pmulti_SOURCES = SeqSpace.main.cpp
-JACKIE_countSeqNeighbors_pmulti_offsitecounts_LDFLAGS = -lz
-JACKIE_countSeqNeighbors_pmulti_offsitecounts_CPPFLAGS = -O3 -D__USE_GZIP -D__FAST_IO__ -D__MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS
-JACKIE_countSeqNeighbors_pmulti_offsitecounts_SOURCES = SeqSpace.main.cpp
+JACKIE_countOffSites_LDFLAGS = -lz
+JACKIE_countOffSites_CPPFLAGS = -O3 -D__USE_GZIP -D__FAST_IO__ -D__MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS
+JACKIE_countOffSites_SOURCES = SeqSpace.main.cpp
 JACKIE_map_SOURCES = JACKIE.main.cpp
 JACKIE_map_CPPFLAGS = -O3 -D__FAST_IO__ -D__JACKIE_MAP__
 JACKIE_vector_SOURCES = JACKIE.main.cpp
@@ -554,6 +510,10 @@ JACKIE.bin$(EXEEXT): $(JACKIE_bin_OBJECTS) $(JACKIE_bin_DEPENDENCIES) $(EXTRA_JA
 	@rm -f JACKIE.bin$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_bin_OBJECTS) $(JACKIE_bin_LDADD) $(LIBS)
 
+JACKIE.countOffSites$(EXEEXT): $(JACKIE_countOffSites_OBJECTS) $(JACKIE_countOffSites_DEPENDENCIES) $(EXTRA_JACKIE_countOffSites_DEPENDENCIES) 
+	@rm -f JACKIE.countOffSites$(EXEEXT)
+	$(AM_V_CXXLD)$(JACKIE_countOffSites_LINK) $(JACKIE_countOffSites_OBJECTS) $(JACKIE_countOffSites_LDADD) $(LIBS)
+
 JACKIE.countSeqNeighbors$(EXEEXT): $(JACKIE_countSeqNeighbors_OBJECTS) $(JACKIE_countSeqNeighbors_DEPENDENCIES) $(EXTRA_JACKIE_countSeqNeighbors_DEPENDENCIES) 
 	@rm -f JACKIE.countSeqNeighbors$(EXEEXT)
 	$(AM_V_CXXLD)$(JACKIE_countSeqNeighbors_LINK) $(JACKIE_countSeqNeighbors_OBJECTS) $(JACKIE_countSeqNeighbors_LDADD) $(LIBS)
@@ -562,17 +522,9 @@ JACKIE.countSeqNeighbors.pmulti$(EXEEXT): $(JACKIE_countSeqNeighbors_pmulti_OBJE
 	@rm -f JACKIE.countSeqNeighbors.pmulti$(EXEEXT)
 	$(AM_V_CXXLD)$(JACKIE_countSeqNeighbors_pmulti_LINK) $(JACKIE_countSeqNeighbors_pmulti_OBJECTS) $(JACKIE_countSeqNeighbors_pmulti_LDADD) $(LIBS)
 
-JACKIE.countSeqNeighbors.pmulti.offsitecounts$(EXEEXT): $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_OBJECTS) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_DEPENDENCIES) $(EXTRA_JACKIE_countSeqNeighbors_pmulti_offsitecounts_DEPENDENCIES) 
-	@rm -f JACKIE.countSeqNeighbors.pmulti.offsitecounts$(EXEEXT)
-	$(AM_V_CXXLD)$(JACKIE_countSeqNeighbors_pmulti_offsitecounts_LINK) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_OBJECTS) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_LDADD) $(LIBS)
-
-JACKIE.countSeqNeighbors.prefixed$(EXEEXT): $(JACKIE_countSeqNeighbors_prefixed_OBJECTS) $(JACKIE_countSeqNeighbors_prefixed_DEPENDENCIES) $(EXTRA_JACKIE_countSeqNeighbors_prefixed_DEPENDENCIES) 
-	@rm -f JACKIE.countSeqNeighbors.prefixed$(EXEEXT)
-	$(AM_V_CXXLD)$(JACKIE_countSeqNeighbors_prefixed_LINK) $(JACKIE_countSeqNeighbors_prefixed_OBJECTS) $(JACKIE_countSeqNeighbors_prefixed_LDADD) $(LIBS)
-
-JACKIE.createMmapFile$(EXEEXT): $(JACKIE_createMmapFile_OBJECTS) $(JACKIE_createMmapFile_DEPENDENCIES) $(EXTRA_JACKIE_createMmapFile_DEPENDENCIES) 
-	@rm -f JACKIE.createMmapFile$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_createMmapFile_OBJECTS) $(JACKIE_createMmapFile_LDADD) $(LIBS)
+JACKIE.encodeSeqCountDatabase$(EXEEXT): $(JACKIE_encodeSeqCountDatabase_OBJECTS) $(JACKIE_encodeSeqCountDatabase_DEPENDENCIES) $(EXTRA_JACKIE_encodeSeqCountDatabase_DEPENDENCIES) 
+	@rm -f JACKIE.encodeSeqCountDatabase$(EXEEXT)
+	$(AM_V_CXXLD)$(JACKIE_encodeSeqCountDatabase_LINK) $(JACKIE_encodeSeqCountDatabase_OBJECTS) $(JACKIE_encodeSeqCountDatabase_LDADD) $(LIBS)
 
 JACKIE.encodeSeqSpace$(EXEEXT): $(JACKIE_encodeSeqSpace_OBJECTS) $(JACKIE_encodeSeqSpace_DEPENDENCIES) $(EXTRA_JACKIE_encodeSeqSpace_DEPENDENCIES) 
 	@rm -f JACKIE.encodeSeqSpace$(EXEEXT)
@@ -582,29 +534,13 @@ JACKIE.encodeSeqSpace.prefixed$(EXEEXT): $(JACKIE_encodeSeqSpace_prefixed_OBJECT
 	@rm -f JACKIE.encodeSeqSpace.prefixed$(EXEEXT)
 	$(AM_V_CXXLD)$(JACKIE_encodeSeqSpace_prefixed_LINK) $(JACKIE_encodeSeqSpace_prefixed_OBJECTS) $(JACKIE_encodeSeqSpace_prefixed_LDADD) $(LIBS)
 
-JACKIE.encodeSeqSpace.prefixed.offsitecounts$(EXEEXT): $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_OBJECTS) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_DEPENDENCIES) $(EXTRA_JACKIE_encodeSeqSpace_prefixed_offsitecounts_DEPENDENCIES) 
-	@rm -f JACKIE.encodeSeqSpace.prefixed.offsitecounts$(EXEEXT)
-	$(AM_V_CXXLD)$(JACKIE_encodeSeqSpace_prefixed_offsitecounts_LINK) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_OBJECTS) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_LDADD) $(LIBS)
-
 JACKIE.encodeSeqSpaceNGG$(EXEEXT): $(JACKIE_encodeSeqSpaceNGG_OBJECTS) $(JACKIE_encodeSeqSpaceNGG_DEPENDENCIES) $(EXTRA_JACKIE_encodeSeqSpaceNGG_DEPENDENCIES) 
 	@rm -f JACKIE.encodeSeqSpaceNGG$(EXEEXT)
 	$(AM_V_CXXLD)$(JACKIE_encodeSeqSpaceNGG_LINK) $(JACKIE_encodeSeqSpaceNGG_OBJECTS) $(JACKIE_encodeSeqSpaceNGG_LDADD) $(LIBS)
 
-JACKIE.encodeSeqSpaceNGG.mmap$(EXEEXT): $(JACKIE_encodeSeqSpaceNGG_mmap_OBJECTS) $(JACKIE_encodeSeqSpaceNGG_mmap_DEPENDENCIES) $(EXTRA_JACKIE_encodeSeqSpaceNGG_mmap_DEPENDENCIES) 
-	@rm -f JACKIE.encodeSeqSpaceNGG.mmap$(EXEEXT)
-	$(AM_V_CXXLD)$(JACKIE_encodeSeqSpaceNGG_mmap_LINK) $(JACKIE_encodeSeqSpaceNGG_mmap_OBJECTS) $(JACKIE_encodeSeqSpaceNGG_mmap_LDADD) $(LIBS)
-
-JACKIE.map$(EXEEXT): $(JACKIE_map_OBJECTS) $(JACKIE_map_DEPENDENCIES) $(EXTRA_JACKIE_map_DEPENDENCIES) 
-	@rm -f JACKIE.map$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_map_OBJECTS) $(JACKIE_map_LDADD) $(LIBS)
-
 JACKIE.sortToBed$(EXEEXT): $(JACKIE_sortToBed_OBJECTS) $(JACKIE_sortToBed_DEPENDENCIES) $(EXTRA_JACKIE_sortToBed_DEPENDENCIES) 
 	@rm -f JACKIE.sortToBed$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_sortToBed_OBJECTS) $(JACKIE_sortToBed_LDADD) $(LIBS)
-
-JACKIE.vector$(EXEEXT): $(JACKIE_vector_OBJECTS) $(JACKIE_vector_DEPENDENCIES) $(EXTRA_JACKIE_vector_DEPENDENCIES) 
-	@rm -f JACKIE.vector$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_vector_OBJECTS) $(JACKIE_vector_LDADD) $(LIBS)
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
@@ -648,19 +584,14 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po # am--include-marker
+include ./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po # am--include-marker
 include ./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po # am--include-marker
 include ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Po # am--include-marker
+include ./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po # am--include-marker
 include ./$(DEPDIR)/JACKIE_encodeSeqSpace-SeqSpace.main.Po # am--include-marker
 include ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Po # am--include-marker
 include ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_map-JACKIE.main.Po # am--include-marker
 include ./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po # am--include-marker
-include ./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -696,6 +627,20 @@ JACKIE_bin-JACKIE.main.obj: JACKIE.main.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_bin_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_bin-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
 
+JACKIE_countOffSites-SeqSpace.main.o: SeqSpace.main.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countOffSites-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Tpo -c -o JACKIE_countOffSites-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po
+#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countOffSites-SeqSpace.main.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countOffSites-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
+
+JACKIE_countOffSites-SeqSpace.main.obj: SeqSpace.main.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countOffSites-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Tpo -c -o JACKIE_countOffSites-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po
+#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countOffSites-SeqSpace.main.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countOffSites-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
+
 JACKIE_countSeqNeighbors-SeqSpace.main.o: SeqSpace.main.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countSeqNeighbors-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Tpo -c -o JACKIE_countSeqNeighbors-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
 	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po
@@ -724,47 +669,19 @@ JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.obj: SeqSpace.main.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_pmulti_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
 
-JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.o: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Tpo -c -o JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.o' libtool=no \
+JACKIE_encodeSeqCountDatabase-SeqSpace.main.o: SeqSpace.main.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqCountDatabase_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqCountDatabase-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqCountDatabase-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
+	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po
+#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_encodeSeqCountDatabase-SeqSpace.main.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqCountDatabase_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqCountDatabase-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
 
-JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.obj: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Tpo -c -o JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.obj' libtool=no \
+JACKIE_encodeSeqCountDatabase-SeqSpace.main.obj: SeqSpace.main.cpp
+	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqCountDatabase_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqCountDatabase-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqCountDatabase-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po
+#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_encodeSeqCountDatabase-SeqSpace.main.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_pmulti_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-
-JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.o: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_prefixed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Tpo -c -o JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_prefixed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-
-JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.obj: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_prefixed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Tpo -c -o JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_prefixed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-
-JACKIE_createMmapFile-CreateMmapFile_main.o: CreateMmapFile_main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_createMmapFile_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_createMmapFile-CreateMmapFile_main.o -MD -MP -MF $(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Tpo -c -o JACKIE_createMmapFile-CreateMmapFile_main.o `test -f 'CreateMmapFile_main.cpp' || echo '$(srcdir)/'`CreateMmapFile_main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Tpo $(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Po
-#	$(AM_V_CXX)source='CreateMmapFile_main.cpp' object='JACKIE_createMmapFile-CreateMmapFile_main.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_createMmapFile_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_createMmapFile-CreateMmapFile_main.o `test -f 'CreateMmapFile_main.cpp' || echo '$(srcdir)/'`CreateMmapFile_main.cpp
-
-JACKIE_createMmapFile-CreateMmapFile_main.obj: CreateMmapFile_main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_createMmapFile_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_createMmapFile-CreateMmapFile_main.obj -MD -MP -MF $(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Tpo -c -o JACKIE_createMmapFile-CreateMmapFile_main.obj `if test -f 'CreateMmapFile_main.cpp'; then $(CYGPATH_W) 'CreateMmapFile_main.cpp'; else $(CYGPATH_W) '$(srcdir)/CreateMmapFile_main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Tpo $(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Po
-#	$(AM_V_CXX)source='CreateMmapFile_main.cpp' object='JACKIE_createMmapFile-CreateMmapFile_main.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_createMmapFile_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_createMmapFile-CreateMmapFile_main.obj `if test -f 'CreateMmapFile_main.cpp'; then $(CYGPATH_W) 'CreateMmapFile_main.cpp'; else $(CYGPATH_W) '$(srcdir)/CreateMmapFile_main.cpp'; fi`
+#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqCountDatabase_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqCountDatabase-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
 
 JACKIE_encodeSeqSpace-SeqSpace.main.o: SeqSpace.main.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpace_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqSpace-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqSpace-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqSpace-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
@@ -794,20 +711,6 @@ JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.obj: SeqSpace.main.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpace_prefixed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
 
-JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.o: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-
-JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.obj: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpace_prefixed_offsitecounts_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-
 JACKIE_encodeSeqSpaceNGG-SeqSpace.main.o: SeqSpace.main.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpaceNGG_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqSpaceNGG-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqSpaceNGG-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
 	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po
@@ -822,34 +725,6 @@ JACKIE_encodeSeqSpaceNGG-SeqSpace.main.obj: SeqSpace.main.cpp
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpaceNGG_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqSpaceNGG-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
 
-JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.o: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpaceNGG_mmap_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpaceNGG_mmap_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
-
-JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.obj: SeqSpace.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpaceNGG_mmap_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Tpo -c -o JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Po
-#	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_encodeSeqSpaceNGG_mmap_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
-
-JACKIE_map-JACKIE.main.o: JACKIE.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_map_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_map-JACKIE.main.o -MD -MP -MF $(DEPDIR)/JACKIE_map-JACKIE.main.Tpo -c -o JACKIE_map-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_map-JACKIE.main.Tpo $(DEPDIR)/JACKIE_map-JACKIE.main.Po
-#	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_map-JACKIE.main.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_map_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_map-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
-
-JACKIE_map-JACKIE.main.obj: JACKIE.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_map_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_map-JACKIE.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_map-JACKIE.main.Tpo -c -o JACKIE_map-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_map-JACKIE.main.Tpo $(DEPDIR)/JACKIE_map-JACKIE.main.Po
-#	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_map-JACKIE.main.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_map_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_map-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
-
 JACKIE_sortToBed-JACKIE.main.o: JACKIE.main.cpp
 	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_sortToBed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_sortToBed-JACKIE.main.o -MD -MP -MF $(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Tpo -c -o JACKIE_sortToBed-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
 	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Tpo $(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po
@@ -863,20 +738,6 @@ JACKIE_sortToBed-JACKIE.main.obj: JACKIE.main.cpp
 #	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_sortToBed-JACKIE.main.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_sortToBed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_sortToBed-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
-
-JACKIE_vector-JACKIE.main.o: JACKIE.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_vector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_vector-JACKIE.main.o -MD -MP -MF $(DEPDIR)/JACKIE_vector-JACKIE.main.Tpo -c -o JACKIE_vector-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_vector-JACKIE.main.Tpo $(DEPDIR)/JACKIE_vector-JACKIE.main.Po
-#	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_vector-JACKIE.main.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_vector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_vector-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
-
-JACKIE_vector-JACKIE.main.obj: JACKIE.main.cpp
-	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_vector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_vector-JACKIE.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_vector-JACKIE.main.Tpo -c -o JACKIE_vector-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
-	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_vector-JACKIE.main.Tpo $(DEPDIR)/JACKIE_vector-JACKIE.main.Po
-#	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_vector-JACKIE.main.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(AM_V_CXX_no)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_vector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_vector-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -1152,19 +1013,14 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 		-rm -f ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po
+	-rm -f ./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Po
+	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_map-JACKIE.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1213,19 +1069,14 @@ maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
 		-rm -f ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po
+	-rm -f ./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti_offsitecounts-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_prefixed-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_createMmapFile-CreateMmapFile_main.Po
+	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG_mmap-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed_offsitecounts-SeqSpace.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_map-JACKIE.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

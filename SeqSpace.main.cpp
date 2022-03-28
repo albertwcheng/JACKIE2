@@ -3079,7 +3079,7 @@ int main(int argc,char **argv)
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
 
-    cerr<<"JACKIE.encodeSeqSpace.prefixed.offsitecounts"<<extra_settings<<endl;
+    cerr<<"JACKIE.encodeSeqCountDatabase"<<extra_settings<<endl;
 
 
     if(argc<7){
@@ -3558,7 +3558,7 @@ int main(int argc,char **argv)
     #endif
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
-    cerr<<"JACKIE.countSeqNeighbors.pmulti.offsitecounts "<<extra_settings<<endl;
+    cerr<<"JACKIE.countOffSites "<<extra_settings<<endl;
 
 
     if(argc<5){
