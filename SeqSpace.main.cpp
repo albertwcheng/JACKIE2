@@ -2168,9 +2168,9 @@ class OffTargetEnumeratorOffSiteCounts:public StepwiseSeqSpaceWithMotifsMultiBit
                         results[i->nmismatches]+=this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK);
                         
                         //debug
-                        if(i->nmismatches==1 && this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK)>0){
+                        /*if(i->nmismatches==1 && this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK)>0){
                             cerr<<"gotcount for "<<(searchIdx&this->prefix_mask->AND_MASK)<<" "<<indexToSeq64(searchIdx)<<"="<<this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK)<<endl;
-                        }
+                        }*/
                         //debug
 
                         if(__mthres){
