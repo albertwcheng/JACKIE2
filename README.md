@@ -149,8 +149,9 @@ echo "date; ${JACKIE_DIR}/JACKIE.countSeqNeighbors ${GENOME_DIR}/${GENOME}/$GENO
 sbatch ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
 ```
 
+JACKIE.encodeSeqSpace and JACKIE.encodeSeqSpaceNGG with kmer=20 will require 128GB memory (RAM virtual). If such memory is not available. 
 
-JACKIE.encodeSeqSpace and JACKIE.encodeSeqSpaceNGG with kmer=20 will require 128GB memory (RAM virtual). If such memory is not available. A newer "divide-and-conquer" approach is available via JACKIE.encodeSeqSpace.prefixed
+A newer "divide-and-conquer" approach is available via JACKIE.encodeSeqSpace.prefixed
 For example, the sequence space is divided into AA,AC,AT subspaces. This will require only 8GB memory.
 
 ```
@@ -181,11 +182,37 @@ echo "date; date +%s; ${JACKIE_DIR}/JACKIE.countSeqNeighbors.pmulti ${GENOME_DIR
 
 bash ${GENOME_DIR}/${GENOME}/countSeqNeighbors.pmulti.$kmer.$PAM.slurmjob.sh
 
+```
+
+To allow for exact number of target sites to be identified, use JACKIE.encodeSeqCountDatabase to encode a SeqCountDatabase.
+
+```
+numBitsPerSeq=3 #3-bits hold up to 2^3-2=6 in the bit array, and put the "overflow" count to map
+
+for PREFIX in AA AC AT AG CA CC CT CG TA TC TT TG GA GC GT GG ; do
+echo "working on $PREFIX"
+date; date +%s;
+JACKIE.encodeSeqCountDatabase ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.$PREFIX.$PAM.${numBitsPerSeq}bits.seqbits.gz $kmer $PREFIX $PAM ${numBitsPerSeq} ${GENOME_DIR}/${GENOME}/nr/*.fa
+date; date +%s;
+done;
 
 ```
 
+Use JACKIE.countOffSites to count number of off-targets per query
+
+```
+
+numBitsPerSeq=3 
+
+inputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.top1000000.BED  #change to your input bed file name
+outputBed=${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.top1000000.offProfile.pmulti.BED  #change to your output bed file name
+sequenceField="4,/,2" #fourth column => split by "/" => second element"
 
 
+JACKIE.countOffSites ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].$PAM.${numBitsPerSeq}bits.seqbits.gz $kmer $mm $inputBed $sequenceField > $outputBed
+
+
+```
 
 Optional example:
 filter for 1/0/0/0 (sgRNAs with no off-target matches up to 3-mismatches)
