@@ -80,11 +80,16 @@ int printUsageAndExit_reader_prefixed(string programName)
 
 int printUsageAndExit_reader_pmulti(string programName)
 {
-    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile prefix 0or1:add_to_previous_profile [col or col,sep,element]"<<endl;
+    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile [col or col,sep,element]"<<endl;
     return 1;
 }
 
 
+int printUsageAndExit_countOffSites(string programName)
+{
+    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile [col or col,sep,element]"<<endl;
+    return 1;
+}
 
 
 #define A 0
@@ -3563,7 +3568,7 @@ int main(int argc,char **argv)
 
     if(argc<5){
         
-        return printUsageAndExit_reader_pmulti(argv[0]);
+        return printUsageAndExit_countOffSites(argv[0]);
     }
     
     
