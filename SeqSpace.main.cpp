@@ -55,6 +55,12 @@ int printUsageAndExit_writer_prefixed(string programName)
     cerr<<programName<<" outputSeqBits(.gz) kmer prefix(e.g., CG) PAM fasta1 fasta2 ... fastaN"<<endl;
     return 1;
 }
+int printUsageAndExit_writer_prefixed_offsitecounts(string programName)
+{   
+   
+    cerr<<programName<<" outputSeqBits(.gz) kmer prefix(e.g., CG) PAM numBitsPerSeq fasta1 fasta2 ... fastaN"<<endl;
+    return 1;
+}
 
 
 
@@ -129,6 +135,10 @@ public:
 
     
     SeqSpace(int _kmer,string inBitStringFileName, bool _useGzip=false):kmer(_kmer),bits(inBitStringFileName,(_useGzip?(uint64_t(1)<<(2*_kmer)):0)){
+
+    }
+
+    SeqSpace(int _kmer,gzFile& file, bool _useGzip=false):kmer(_kmer),bits(file,(_useGzip?(uint64_t(1)<<(2*_kmer)):0)){
 
     }
 
@@ -430,6 +440,11 @@ class SeqBitMask{
             }
 
             return mask;
+        }
+
+        SeqBitMask():AND_MASK(0),OR_MASK(0),nmismatches(0)
+        {
+
         }
 
         SeqBitMask(string _seq):AND_MASK(0),OR_MASK(0),nmismatches(0)
@@ -1031,6 +1046,612 @@ class StepwiseSeqSpaceWithMotifs:public SeqSpace
 };
 
 
+class StepwiseSeqSpaceWithMotifsMultiBits
+{   
+    private:
+    int idx_i;
+
+    uint64_t N_idx;
+
+    uint64_t fwd_idx;
+    uint64_t rev_idx;
+    uint64_t mask;
+    uint64_t rev_A_setter;
+    uint64_t rev_C_setter;
+    uint64_t rev_G_setter;
+    uint64_t rev_T_setter;
+
+
+    SeqBitMask fwd_mask;
+
+
+    uint32_t numBitsPerSeq;
+    uint64_t maxBitEncodedValue;
+    SeqSpace** spaces;
+    map<uint64_t,uint16_t> overflowSeqToCountMap;
+    //string prefix;
+
+    int motifLength;
+
+    uint64_t nucI;
+
+    public:
+    int kmer;
+    SeqBitMask *prefix_mask;
+    int prefixLength;
+
+    void init_StepwiseSeqSpace(int _kmer)
+    {
+        this->idx_i=0;
+        this->fwd_idx=0;
+        this->rev_idx=0;
+
+        this->N_idx=0;
+  
+        this->mask=3;
+
+        
+        this->rev_A_setter=0;
+        this->rev_C_setter=1;
+        this->rev_G_setter=2;
+        this->rev_T_setter=3;
+
+        for(int i=1;i<_kmer;i++)
+        {
+            this->mask<<=2;
+            this->mask|=3;
+
+            this->rev_A_setter<<=2;
+            this->rev_C_setter<<=2;
+            this->rev_G_setter<<=2;
+            this->rev_T_setter<<=2;
+        }
+    }
+    ~StepwiseSeqSpaceWithMotifsMultiBits(){
+        if(this->prefix_mask){
+            delete this->prefix_mask;
+        }
+        if(this->spaces){
+            for(int i=0;i<this->numBitsPerSeq;i++){
+                delete this->spaces[i];
+            }
+            delete[] this->spaces;
+        }
+    }
+    StepwiseSeqSpaceWithMotifsMultiBits(int _kmer, string _fwd_motif,string _prefix,int _prefixLength,int _numBitsPerSeq):kmer(_kmer),fwd_mask(_fwd_motif),numBitsPerSeq(_numBitsPerSeq)
+    {
+        prefixLength=_prefixLength;
+        init_StepwiseSeqSpace(_fwd_motif.length());
+        this->motifLength=_fwd_motif.length();
+        //cerr<<"_prefix="<<_prefix<<endl;
+        this->prefix_mask=new SeqBitMask(_prefix);
+
+        this->maxBitEncodedValue=(1<<(_numBitsPerSeq))-2;
+
+        this->spaces=new SeqSpace*[_numBitsPerSeq];
+        for(int i=0;i<_numBitsPerSeq;i++){
+            this->spaces[i]=new SeqSpace(_kmer);
+        }
+        //cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
+        //cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
+        //nucI=0;
+    }
+
+    bool gz_read_uint64(gzFile& file,uint64_t* _data){
+        int bytes_read=gzread(file,_data,sizeof(int64_t));
+        if(!bytes_read){
+            if(gzeof(file)){
+                return false;
+            }else{
+                const char*error_string;
+                int err;
+                error_string=gzerror(file,&err);
+                if(err){
+                    cerr<<"Error: "<<error_string<<endl;
+                    return false;
+                }
+                
+            }
+        }
+        return true;
+    }
+
+    bool gz_read_uint16(gzFile& file,uint16_t* _data){
+        int bytes_read=gzread(file,_data,sizeof(int16_t));
+        if(!bytes_read){
+            if(gzeof(file)){
+                return false;
+            }else{
+                const char*error_string;
+                int err;
+                error_string=gzerror(file,&err);
+                if(err){
+                    cerr<<"Error: "<<error_string<<endl;
+                    return false;
+                }
+                
+            }
+        }
+        return true;
+    }
+
+    StepwiseSeqSpaceWithMotifsMultiBits(int _kmer,string filename, string _prefix):prefix_mask(NULL){
+        init_StepwiseSeqSpace(_kmer+_prefix.length());
+
+
+        this->prefix_mask=new SeqBitMask(StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix));
+        this->prefixLength=_prefix.length();
+
+        gzFile file;
+        file=gzopen(filename.c_str(),"r");
+
+        if(!file){
+            cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
+            return;
+        }else{
+            cerr<<"gzopen of "<<filename<<" succeeded. Continue to load"<<endl;
+        }
+
+        uint64_t readInt;
+
+
+        if(!gz_read_uint64(file,&readInt)) //numBitsPerSeq
+            return;
+        this->numBitsPerSeq=readInt;
+
+        if(!gz_read_uint64(file,&readInt)) //numBytesPerSpace
+            return;
+        uint64_t numBytesPerSpace=readInt;
+
+        if(!gz_read_uint64(file,&readInt)) //num of overflow elements
+            return;
+        uint64_t numOverflowElements=readInt;
+
+        this->maxBitEncodedValue=(1<<(numBitsPerSeq))-2;
+        this->spaces=new SeqSpace*[numBitsPerSeq];
+
+
+        for(int i=0;i<numBitsPerSeq;i++){
+            cerr<<"prepare to read k="<<_kmer<<" seqspace #"<<(i+1)<<endl;
+            this->spaces[i]=new SeqSpace(_kmer,file,true);
+            
+        }
+
+        cerr<<"prepare to load "<< numOverflowElements<<" overflow elements"<<endl;
+        for(uint64_t i=0;i<numOverflowElements;i++){
+            uint64_t key;
+            uint16_t value;
+            if(!gz_read_uint64(file,&key))
+                return;
+
+            if(!gz_read_uint16(file,&value))
+                return;
+            
+            overflowSeqToCountMap.insert(map<uint64_t,uint16_t>::value_type(key,value));
+
+        }
+        cerr<<"done loading overflow elements"<<endl;
+
+
+        //cerr<<"_prefix="<<StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix)<<endl;
+        //cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
+        //cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
+
+        gzclose(file);
+    } 
+
+
+
+
+    //StepwiseSeqSpace(int _kmer,string inBitStringFileName, bool _useGzip=false):SeqSpace(_kmer,inBitStringFileName,_useGzip){
+    //    init_StepwiseSeqSpace(_kmer);
+    //}    
+    inline uint16_t getIndexCount(uint64_t _idx){
+        uint16_t counts=spaces[numBitsPerSeq-1]->bits.getBit(_idx);
+ 
+        for(int i=numBitsPerSeq-2;i>=0;i--){
+            counts<<=1;
+
+            counts+=spaces[i]->bits.getBit(_idx);
+
+        }
+
+        if(counts>maxBitEncodedValue){
+            //go to lookup
+            map<uint64_t,uint16_t>::iterator findI=overflowSeqToCountMap.find(_idx);
+            if(findI==overflowSeqToCountMap.end()){
+                cerr<<"unexpected error"<<endl;
+                exit(1);
+                return counts;
+            }else{
+                counts=findI->second;
+                
+            }
+        }
+
+        return counts;
+    }
+
+    inline string indexToSeq(uint64_t idx,int _k=0)
+    {
+        string seq;
+        for(int i=0;i<((_k==0)?this->kmer:_k);i++){
+            seq=IdxToNt(idx & 3)+seq;
+            idx>>=2;
+        }
+        
+        return seq;
+        
+    }
+
+    inline void incrementIndexedCount(uint64_t _idx){
+        uint64_t curIndexedCount=getIndexCount(_idx);
+   
+        if(curIndexedCount==maxBitEncodedValue){
+
+
+            this->spaces[0]->bits.setBit(_idx,1); //only need to set the least significant bit one because everything else already 1, e.g., , 0111->
+            //setup new count map entry
+            overflowSeqToCountMap.insert(map<uint64_t,uint16_t>::value_type(_idx,maxBitEncodedValue+1));
+        }else if(curIndexedCount>maxBitEncodedValue){
+            if(curIndexedCount==65535){
+                cerr<<"count overflow for "<<_idx<<":"<<indexToSeq(_idx)<<endl;
+            }else{
+                overflowSeqToCountMap[_idx]++;
+            }
+        }else{
+            //flip bits
+            int spaceI=0;
+            bool thisBitValue;
+            do{
+                thisBitValue=this->spaces[spaceI]->bits.getBit(_idx);
+                if(thisBitValue){ //this is a one
+                    this->spaces[spaceI]->bits.setBit(_idx,0); 
+                }else{ //this is a zero
+                    this->spaces[spaceI]->bits.setBit(_idx,1);
+                    break; 
+                }
+                spaceI++;
+            }while(thisBitValue);
+        }
+
+
+
+    }
+
+    string Uint64ToString(uint64_t idxer)
+    {
+        string s;
+        for(int i=0;i<64;i++)
+        {
+            s=(((idxer&1)==1)?'1':'0')+s;
+            idxer>>=1;
+        }
+
+        return s;
+    }
+
+    inline void see(char c)
+    {
+        nucI++;
+
+        switch(c)
+        {
+            case 'A':
+
+                this->idx_i++; 
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+
+                    this->N_idx<<=2;
+                }
+
+                this->rev_idx|=this->rev_T_setter;
+
+                
+
+                break;
+            case 'C':
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+
+                    this->N_idx<<=2;
+                }
+
+                this->fwd_idx|=1;
+                this->rev_idx|=this->rev_G_setter;
+
+                break;
+            case 'G':
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+
+                    this->N_idx<<=2;
+                }
+
+                this->fwd_idx|=2;
+                this->rev_idx|=this->rev_C_setter;
+
+                break;
+            case 'T':
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+
+                    this->N_idx<<=2;
+                }
+
+
+                this->fwd_idx|=3;
+                this->rev_idx|=this->rev_A_setter;
+
+                break;
+            case '>':
+                //cerr<<"see ["<<c<<"]"<<endl;
+                this->nucI=0;
+                this->idx_i=0;
+                this->fwd_idx=0;
+                this->rev_idx=0;
+                this->N_idx=0;
+
+            case 'N':
+            default:
+
+                this->idx_i++;
+                if(this->idx_i>1){
+                    this->fwd_idx<<=2;
+                    this->rev_idx>>=2;
+
+                    this->N_idx<<=2;
+                }
+
+                this->N_idx|=3;
+
+                break;
+        }
+
+        //string checkSeq("GGCCGACACAAGTGCCATTC");
+
+        if(this->idx_i==this->motifLength)//this->kmer)
+        {
+            //now match fwd
+
+            uint64_t masked_fwd_idx=this->fwd_idx & this->mask;
+            if((masked_fwd_idx&(~this->fwd_mask.AND_MASK))==this->fwd_mask.OR_MASK){
+                uint64_t actual_fwd_idx=masked_fwd_idx>>(2*(this->motifLength-this->kmer-this->prefixLength));
+
+                //check N
+                uint64_t masked_N_idx=this->N_idx & this->mask;
+                uint64_t actual_N_idx=masked_N_idx>>(2*(this->motifLength-this->kmer-this->prefixLength));
+
+                
+
+                if(actual_N_idx==0)
+                {
+                    if(this->prefix_mask){
+                        //check if current is within prefix scope
+                        if((actual_fwd_idx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){
+                            //within scope
+                            this->incrementIndexedCount(actual_fwd_idx&this->prefix_mask->AND_MASK);
+                            //cerr<<"\tset_bit at\t"<<Uint64ToString(actual_fwd_idx&this->prefix_mask->AND_MASK)<<"\t"<<indexToSeq(actual_fwd_idx&this->prefix_mask->AND_MASK)<<endl;
+                        }
+                    }
+                    else{
+                        this->incrementIndexedCount(actual_fwd_idx);
+                    }
+
+                    //if(indexToSeq(actual_fwd_idx,20)==checkSeq){
+                    //cerr<<"SET FWD\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
+                    //cerr<<"set Fwd bit"<<endl;
+                    //cerr<<"\tthis->fwd_idx\t"<<Uint64ToString(this->fwd_idx)<<"\t"<<indexToSeq64(this->fwd_idx)<<endl;
+                    //cerr<<"\tthis->mask\t"<<Uint64ToString(this->mask)<<"\t"<<indexToSeq64(this->mask)<<endl;
+                    //cerr<<"\tmasked_fwd_idx\t"<<Uint64ToString(masked_fwd_idx)<<"\t"<<indexToSeq64(masked_fwd_idx)<<endl;
+                    //cerr<<"\tactual_fwd_idx\t"<<Uint64ToString(actual_fwd_idx)<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
+                    //}
+
+                }
+                else
+                {
+                    /*cerr<<"has N FWD\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;
+                    cerr<<"\tactual_N_idx\t"<<Uint64ToString(actual_N_idx)<<"\t"<<indexToSeq64(actual_N_idx)<<endl;
+                    cerr<<"\tthis->fwd_idx\t"<<Uint64ToString(this->fwd_idx)<<"\t"<<indexToSeq64(this->fwd_idx)<<endl;
+                    cerr<<"\tthis->mask\t"<<Uint64ToString(this->mask)<<"\t"<<indexToSeq64(this->mask)<<endl;
+                    cerr<<"\tmasked_fwd_idx\t"<<Uint64ToString(masked_fwd_idx)<<"\t"<<indexToSeq64(masked_fwd_idx)<<endl;
+                    cerr<<"\tactual_fwd_idx\t"<<Uint64ToString(actual_fwd_idx)<<"\t"<<indexToSeq64(actual_fwd_idx)<<endl;*/                    
+                }
+                
+
+            }
+
+            uint64_t masked_rev_idx=this->rev_idx & this->mask;
+            if((masked_rev_idx&(~this->fwd_mask.AND_MASK))==this->fwd_mask.OR_MASK){
+                //uint64_t actual_rev_idx=masked_rev_idx&(this->mask>>(2*(this->motifLength-this->kmer)));
+                uint64_t actual_rev_idx=masked_rev_idx>>(2*(this->motifLength-this->kmer-this->prefixLength));
+
+
+                //check N
+                uint64_t masked_N_idx=this->N_idx & this->mask;
+                uint64_t actual_N_idx=masked_N_idx&(this->mask>>(2*(this->motifLength-this->kmer-this->prefixLength)));
+
+                if(actual_N_idx==0)
+                {
+                    if(this->prefix_mask){
+                        if((actual_rev_idx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){
+                            //in scope
+                            this->incrementIndexedCount(actual_rev_idx&this->prefix_mask->AND_MASK);
+
+                        }
+                    }
+                    else{
+                        this->incrementIndexedCount(actual_rev_idx);
+                    }
+                    /*if(indexToSeq(actual_rev_idx)==checkSeq){
+                        
+                        cerr<<"SET REV\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_rev_idx)<<endl;
+                        //cerr<<"set Rev bit"<<endl;
+                        cerr<<"\tthis->rev_idx\t"<<Uint64ToString(this->rev_idx)<<"\t"<<indexToSeq64(this->rev_idx)<<endl;
+                        cerr<<"\tthis->mask\t"<<Uint64ToString(this->mask)<<"\t"<<indexToSeq64(this->mask)<<endl;
+                        cerr<<"\tmasked_rev_idx\t"<<Uint64ToString(masked_rev_idx)<<"\t"<<indexToSeq64(masked_rev_idx)<<endl;
+                        cerr<<"\tactual_rev_idx\t"<<Uint64ToString(actual_rev_idx)<<"\t"<<indexToSeq64(actual_rev_idx)<<endl;
+                        cerr<<"\tget_bit at\t"<<Uint64ToString(actual_rev_idx)<<"\t"<<indexToSeq(actual_rev_idx)<<endl;
+                    }*/
+                }
+                else
+                {
+                    /*cerr<<"has N REV\t"<<StringUtil::str(int(nucI+1))<<"\t"<<indexToSeq64(actual_rev_idx)<<endl;
+                    //cerr<<"set Rev bit"<<endl;
+                    cerr<<"\tactual_N_idx\t"<<Uint64ToString(actual_N_idx)<<"\t"<<indexToSeq64(actual_N_idx)<<endl;
+                    cerr<<"\tthis->rev_idx\t"<<Uint64ToString(this->rev_idx)<<"\t"<<indexToSeq64(this->rev_idx)<<endl;
+                    cerr<<"\tthis->mask\t"<<Uint64ToString(this->mask)<<"\t"<<indexToSeq64(this->mask)<<endl;
+                    cerr<<"\tmasked_rev_idx\t"<<Uint64ToString(masked_rev_idx)<<"\t"<<indexToSeq64(masked_rev_idx)<<endl;
+                    cerr<<"\tactual_rev_idx\t"<<Uint64ToString(actual_rev_idx)<<"\t"<<indexToSeq64(actual_rev_idx)<<endl;*/                    
+                }
+                
+
+            }
+
+            //cerr<<"\tFwd "<<Uint64ToString(this->fwd_idx & this->mask)<<" ~ "<<this->indexToSeq(this->fwd_idx & this->mask)<<endl;
+            //cerr<<"\tRev "<<Uint64ToString(this->rev_idx & this->mask)<<" ~ "<<this->indexToSeq(this->rev_idx & this->mask)<<endl;
+            this->idx_i--;
+        }
+
+    }
+
+    static string getFwdMotif(int kmer,string PAM){
+        string motif;
+        for(int i=0;i<kmer;i++){
+            motif+="N";
+        }
+
+        return motif+PAM;
+    }
+
+    static string getPrefixMaskString(int kmer,string prefixNuc){
+        string S=prefixNuc;
+        for(int i=0;i<kmer-prefixNuc.length();i++){
+            S+="N";
+        }
+
+        return S;
+    }
+
+
+    bool gz_write_uint64_t(gzFile& file,uint64_t data){
+        int byte_written=gzwrite(file,(void*)&data,sizeof(uint64_t));
+
+        if(byte_written<sizeof(uint64_t)){ //something is wrong!
+            const char*error_string;
+            int err;
+            error_string=gzerror(file,&err);
+            if(err){
+                cerr<<"Error: "<<error_string<<endl;
+                gzclose(file);
+                return false;
+                
+            }else{
+                cerr<<"Unknown write error"<<endl;
+                gzclose(file);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool gz_write_uint16_t(gzFile& file,uint16_t data){
+        int byte_written=gzwrite(file,(void*)&data,sizeof(uint16_t));
+
+        if(byte_written<sizeof(uint16_t)){ //something is wrong!
+            const char*error_string;
+            int err;
+            error_string=gzerror(file,&err);
+            if(err){
+                cerr<<"Error: "<<error_string<<endl;
+                gzclose(file);
+                return false;
+                
+            }else{
+                cerr<<"Unknown write error"<<endl;
+                gzclose(file);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+
+
+
+    bool writeToFileGZ(const string&filename)
+    {
+        gzFile file;
+        file=gzopen(filename.c_str(),"w");
+        if(!file){
+            cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
+            return false;
+        }else{
+            cerr<<"gzopen of "<<filename<<" succeeded."<<endl;
+        }
+        
+        //write number of SeqSpaces
+        cerr<<"number of Seq spaces="<<this->numBitsPerSeq<<endl;
+        if(!gz_write_uint64_t(file,this->numBitsPerSeq))
+            return false;
+        
+        //write number of bytes per space
+        cerr<<"number of bytes per spaces="<<this->spaces[0]->bits.numBytes<<endl;
+        if(!gz_write_uint64_t(file,this->spaces[0]->bits.numBytes))
+            return false;
+
+        //how many items in overflow map
+        cerr<<"number of items in overflow map="<<this->overflowSeqToCountMap.size()<<endl;
+        if(!gz_write_uint64_t(file,this->overflowSeqToCountMap.size()))
+            return false;        
+
+        
+        for(int i=0;i<numBitsPerSeq;i++){
+            if(!this->spaces[i]->bits.writeToFileGZ(file))
+                return false;
+            cerr<<"done writing space "<<(i+1)<<endl;
+        }
+
+        cerr<<"start writing overflow map"<<endl;
+        for(map<uint64_t,uint16_t>::iterator i=overflowSeqToCountMap.begin();i!=overflowSeqToCountMap.end();i++){
+            if(!gz_write_uint64_t(file,i->first))
+                return false;           
+            if(!gz_write_uint16_t(file,i->second))
+                return false;  
+        }
+        cerr<<"done writing overflow map"<<endl;
+        gzclose(file);
+        return true;
+    }
+
+    /*static string getRevMotif(string rcPAM,int kmer){
+        string motif=rcPAM;
+        for(int i=0;i<kmer;i++){
+            motif+="N";
+        }
+
+        return motif;
+    }*/
+
+    
+
+};
+
+
 
 class OffTargetEnumerator:public StepwiseSeqSpace
 {
@@ -1388,6 +2009,205 @@ class OffTargetEnumerator:public StepwiseSeqSpace
 };
 
 
+
+class OffTargetEnumeratorOffSiteCounts:public StepwiseSeqSpaceWithMotifsMultiBits
+{
+    class TaskMem{
+        public:
+            string misString;
+            int level;
+            int pos;
+            TaskMem(string _misString,int _level, int _pos):misString(_misString),level(_level),pos(_pos){
+
+            }
+        
+    };
+
+    public:
+        vector<SeqBitMask> seqBitMasks;
+        int mthres;
+        uint32_t *results;
+
+        ~OffTargetEnumeratorOffSiteCounts(){
+            delete[] results;
+        }
+
+        uint64_t seqToIndex(string _seq){
+            uint64_t idx=NtToIdx(_seq[0]);
+            //for(int i=1;i<this->kmer;i++)
+            for(int i=1;i<_seq.length();i++)
+            {
+                idx<<=2;
+                idx|=NtToIdx(_seq[i]);
+            }
+            
+            return idx; 
+        }
+
+        void init_OffTargetEnumerator(int _kmer,int _mthres){
+           results=new uint32_t[_mthres];
+            for(int i=0;i<=_mthres;i++){
+                results[i]=0;
+            }
+
+            queue<TaskMem> Q;
+            string misString;
+            string alphabet("ACGT");            
+
+            for(int i=0;i<_kmer;i++){
+                misString+="N";
+            }
+
+            for(int i=0;i<_kmer;i++){
+                Q.push(TaskMem(misString,1,i));
+            }
+
+            int counter=0;
+            
+            while(!Q.empty()){
+                TaskMem thisTask=Q.front();
+                Q.pop();
+                for(int k=0;k<4;k++){
+                    
+                    string newMisString(thisTask.misString);
+                    newMisString[thisTask.pos]=alphabet[k];
+
+
+
+                    counter++;
+                    
+                    SeqBitMask seqBitMask(newMisString);
+                    this->seqBitMasks.push_back(seqBitMask);
+                    //cerr<<counter<<"\t\t"<<newMisString<<"\t"<<seqBitMask.toString()<<endl; //do sth else;
+                    //cerr<<counter<<"\t\t"<<seqBitMask.spacedString(newMisString)<<endl;
+                    //cerr<<counter<<"\t\t"<<seqBitMask.ANDToString()<<endl;
+                    //cerr<<counter<<"\t\t"<<seqBitMask.ORToString()<<endl;
+                    
+                    
+
+                    if(thisTask.level<mthres){
+                        for(int j=thisTask.pos+1;j<_kmer;j++){
+                            TaskMem v(newMisString,thisTask.level+1,j);
+                            Q.push(v);
+                        }
+                        
+                    }
+                }
+            }
+        }
+
+        string indexToSeq64(uint64_t idx)
+        {
+            string seq;
+            for(int i=0;i<32;i++){
+                seq=IdxToNt(idx & 3)+seq;
+                idx>>=2;
+            }
+            
+            return seq;
+            
+        }
+
+
+        OffTargetEnumeratorOffSiteCounts(int _kmer, string _inBitStringFileName, int _mthres, string _prefix,bool useGzip=false):StepwiseSeqSpaceWithMotifsMultiBits(_kmer-_prefix.length(),_inBitStringFileName,_prefix),mthres(_mthres)
+        {
+            init_OffTargetEnumerator(_kmer,_mthres);
+        }
+
+
+        inline void findOffTargetHits(const string &seq)
+        {
+            uint64_t seqIdx=this->seqToIndex(seq);
+            findOffTargetHits(seqIdx);
+        }
+
+        inline void findOffTargetHits(uint64_t seqIdx, vector<uint64_t> *__mthres=NULL)
+        {
+            for(int i=0;i<=this->mthres;i++){
+                results[i]=0;
+            }
+
+            //cerr<<"A1:"<<Uint64ToString(seqIdx)<<endl;
+
+            if(this->prefix_mask){
+                
+                //cerr<<"A2:"<<Uint64ToString(this->prefix_mask->AND_MASK)<<endl;
+                //cerr<<"A3:"<<Uint64ToString(this->prefix_mask->OR_MASK)<<endl;
+                //cerr<<"A4:"<<Uint64ToString(seqIdx&(this->prefix_mask->AND_MASK))<<endl;
+
+                if((seqIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){ 
+                    results[0]=this->getIndexCount(seqIdx&(this->prefix_mask->AND_MASK));  
+                }
+            }else{
+                results[0]=this->getIndexCount(seqIdx); 
+            }
+
+            for(vector<SeqBitMask>::iterator i=this->seqBitMasks.begin();i!=this->seqBitMasks.end();i++){
+
+                bool doubleCounting=false;
+                for(vector<uint64_t>::iterator it=i->positionMasks.begin();it!=i->positionMasks.end();it++){
+                    uint64_t mask=(*it);
+                    if((i->OR_MASK&mask) == (seqIdx&mask)){
+                        doubleCounting=true;
+                        break;
+                    }
+                    
+                }
+
+                if(doubleCounting){
+                    continue;
+                }
+
+
+                uint64_t searchIdx=seqIdx;
+                searchIdx&=i->AND_MASK;
+                searchIdx|=i->OR_MASK;
+
+                if(this->prefix_mask){
+                    if(searchIdx!=seqIdx && ((searchIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK)){
+                        results[i->nmismatches]+=this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK);
+                        
+                        //debug
+                        if(i->nmismatches==1 && this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK)>0){
+                            cerr<<"gotcount for "<<(searchIdx&this->prefix_mask->AND_MASK)<<" "<<indexToSeq64(searchIdx)<<"="<<this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK)<<endl;
+                        }
+                        //debug
+
+                        if(__mthres){
+                            if(results[i->nmismatches]>(*__mthres)[i->nmismatches]){
+                                break;
+                            }
+                        }
+                    }
+                }
+                else{
+                
+                    if(searchIdx!=seqIdx){
+                        results[i->nmismatches]+=this->getIndexCount(searchIdx);
+                        if(__mthres){
+                            if(results[i->nmismatches]>(*__mthres)[i->nmismatches]){
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        string getResultString(){
+            string ret;
+            ret=StringUtil::str(results[0]);
+            for(int i=1;i<=this->mthres;i++)
+            {
+                ret+="/"+StringUtil::str(results[i]);
+            }
+            return ret;
+        }
+
+};
+
+
+
 class OffProfileRecord
 {
     public:
@@ -1399,12 +2219,19 @@ class OffProfileRecord
     inline OffProfileRecord(const OffTargetEnumerator &ote):offProfiles(ote.results,ote.results+(ote.mthres+1)){
         
     }
+    inline OffProfileRecord(const OffTargetEnumeratorOffSiteCounts &ote):offProfiles(ote.results,ote.results+(ote.mthres+1)){
+        
+    }    
     inline void increment(const OffTargetEnumerator &ote){
         for(int i=0;i<=ote.mthres;i++){
             this->offProfiles[i]+=ote.results[i];
         }
     }
-
+    inline void increment(const OffTargetEnumeratorOffSiteCounts &ote){
+        for(int i=0;i<=ote.mthres;i++){
+            this->offProfiles[i]+=ote.results[i];
+        }
+    }
     string getResultString(){
         string ret;
         ret=StringUtil::str(offProfiles[0]);
@@ -2235,6 +3062,104 @@ int main(int argc,char **argv)
 
 
 
+#ifdef __MODE3_WRITERNGG_PREFIXED_OFFSITECOUNTS
+
+int main(int argc,char **argv)
+{
+
+    string extra_settings="";
+
+    #ifdef __FAST_IO__
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    extra_settings=" FastIO option=True";
+    #endif //__FAST_IO__
+
+    extra_settings+=" GZIP=True";
+
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
+
+    cerr<<"JACKIE.encodeSeqSpace.prefixed.offsitecounts"<<extra_settings<<endl;
+
+
+    if(argc<7){
+        
+        return printUsageAndExit_writer_prefixed_offsitecounts(argv[0]);
+    }
+
+
+    string outBitStringFileName=argv[1];
+
+    int kmer=StringUtil::atoi(argv[2]);
+    string prefixNuc=argv[3];
+
+    string PAM=argv[4];
+    if(PAM=="-"){
+        PAM=""; //no PAM
+    }
+    time_t start_time=time(NULL);
+
+    int numBitsPerSeq=StringUtil::atoi(argv[5]);
+
+    #define STARTIDX 6
+
+
+
+    StepwiseSeqSpaceWithMotifsMultiBits seqspace(kmer-prefixNuc.length(),StepwiseSeqSpaceWithMotifs::getFwdMotif(kmer,PAM),StepwiseSeqSpaceWithMotifs::getPrefixMaskString(kmer,prefixNuc),prefixNuc.length(),numBitsPerSeq);
+
+    
+    
+    for(int i=STARTIDX;i<argc;i++){
+        
+
+        time_t prev_time=time(NULL);
+        
+        cerr<<"Processing fasta file "<<argv[i]<<endl;
+        FastaFile fastaFile(argv[i]);
+        while (true){
+
+            char c=toupper(fastaFile.readNextNt());
+            if(c=='\0'){
+                break;
+            }else if(c=='>'){
+                cerr<<"Processing sequence "<<fastaFile.seqName<<endl;
+                seqspace.see('>');
+            }else{
+                //cerr<<c<<endl;
+                seqspace.see(c);
+                //cerr<<c<<endl;
+            }
+        }
+
+        time_t now_time=time(NULL);
+        cerr<<"Finish "<<argv[i]<<" in "<<(now_time-prev_time)<<" second(s)"<<endl;
+        
+    }
+
+    time_t now_time=time(NULL);
+    cerr<<"Finish processing all fasta files in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    cerr<<"Start printing SeqSpace"<<endl;
+    time_t prev_time=time(NULL);
+    //seqspace.bits.writeToFile(outBitStringFileName);
+    
+    
+    seqspace.writeToFileGZ(outBitStringFileName);
+
+
+    now_time=time(NULL);
+    cerr<<"Finish printing SeqSpace in "<<(now_time-prev_time)<<" second(s)"<<endl;
+    cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+    return 0;
+    
+
+}
+
+#endif //__MODE3_WRITERNGG_PREFIXED_OFFSITECOUNTS
+
+
+
+
 #ifdef __MODE3_READER
 
 
@@ -2461,7 +3386,7 @@ int main(int argc,char **argv)
     cerr<<"JACKIE.countSeqNeighbors.pmulti "<<extra_settings<<endl;
 
 
-    if(argc<6){
+    if(argc<5){
         
         return printUsageAndExit_reader_pmulti(argv[0]);
     }
@@ -2530,6 +3455,181 @@ int main(int argc,char **argv)
 }
 
 #endif //__MODE3_READER_PREFIXED_MULTI
+
+
+
+#ifdef __MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS
+
+#define COUNTSEQNEIGHBORS_FIRSTPASS 0
+#define COUNTSEQNEIGHBORS_MIDPASS 1
+#define COUNTSEQNEIGHBORS_LASTPASS 2
+
+
+
+int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileName, int kmer, int mthres, string searchListFileName, string _prefix,int col0,string sep,int splitCom0,vector<OffProfileRecord>&offProfiles,int passType)
+{
+    time_t start_time=time(NULL);
+    time_t now_time=time(NULL);
+    cerr<<"Start on "<<_prefix<<endl;
+    cerr<<_prefix<<" : start reading bitsring file"<<endl;
+    time_t prev_time=time(NULL);
+
+    bool useGzip=(StringUtil::toUpper(inBitStringFileName.substr(inBitStringFileName.length()-2,2))=="GZ");
+   
+    OffTargetEnumeratorOffSiteCounts enumerator(kmer,inBitStringFileName,mthres,_prefix,useGzip);
+
+    now_time=time(NULL);
+    cerr<<_prefix<<" : Finish reading in "<<(now_time-prev_time)<<" second(s)"<<endl;
+    prev_time=time(NULL);
+    uint64_t counter=0;
+
+    ifstream fin;
+    fin.open(searchListFileName.c_str());
+
+    uint64_t lino=0;
+
+    uint64_t recordNum=0;
+
+    while(!fin.eof()){
+        lino++;
+        if(lino%1000000==1){
+            now_time=time(NULL);
+            cerr<<_prefix<<" : processed "<<(lino-1)<<" lines, time elapsed:"<<(now_time-prev_time)<<endl;
+        }
+        string lin;
+        getline(fin,lin);
+        if(lin!=""){
+
+            if(col0>=0){
+                vector<string> fields;
+                StringUtil::split(lin,"\t",fields);
+                string col_value=fields[col0];
+                if(splitCom0>=0){
+                    vector<string> splits;
+                    StringUtil::split(col_value,sep,splits);
+                    enumerator.findOffTargetHits(splits[splitCom0]);
+                }else{
+                    enumerator.findOffTargetHits(col_value);
+                }
+            }else{
+                enumerator.findOffTargetHits(lin);
+            }
+
+            switch(passType){
+                case COUNTSEQNEIGHBORS_FIRSTPASS:
+                    offProfiles.push_back(OffProfileRecord(enumerator));
+                break;
+                case COUNTSEQNEIGHBORS_MIDPASS:
+                    offProfiles[recordNum].increment(enumerator);                    
+                break;
+                case COUNTSEQNEIGHBORS_LASTPASS:
+                    offProfiles[recordNum].increment(enumerator);
+                    cout<<lin<<"\t"<<offProfiles[recordNum].getResultString()<<endl; //enumerator.getResultString()<<endl;
+                break;
+            }
+
+            recordNum++;
+
+        }
+    }
+
+    now_time=time(NULL);
+    cerr<<_prefix<<" : Finish finding off-targets for "<<lino<< " lines in "<<(now_time-prev_time)<<" second(s)"<<endl;
+
+    cerr<<_prefix<<" : done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    return 0;
+}
+
+
+int main(int argc,char **argv)
+{
+
+    string extra_settings="";
+
+    #ifdef __FAST_IO__
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    extra_settings+=" FastIO option=True";
+    #endif //__FAST_IO__
+
+    #ifdef __USE_GZIP
+    extra_settings+=" GZIP=True";
+    #endif
+
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    cerr<<"JACKIE.countSeqNeighbors.pmulti.offsitecounts "<<extra_settings<<endl;
+
+
+    if(argc<5){
+        
+        return printUsageAndExit_reader_pmulti(argv[0]);
+    }
+    
+    
+
+    string inBitStringFileNames=argv[1]; // /path/to/name.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz
+
+    int kmer=StringUtil::atoi(argv[2]);
+    int mthres=StringUtil::atoi(argv[3]);
+
+    string searchListFileName=argv[4];
+
+    int col0=-1;
+    string sep="";
+    int splitCom0=-1;
+
+
+    if(argc>=6){
+        string argv_string(argv[5]);
+        vector<string> v;
+        StringUtil::split(argv_string,",",v);
+        col0=StringUtil::atoi(v[0])-1;
+        if(v.size()>1)
+        {
+            sep=v[1];
+            splitCom0=StringUtil::atoi(v[2])-1;
+        }
+
+    }
+
+    time_t start_time=time(NULL);
+
+
+    vector<string> nameSplits;
+    StringUtil::split(inBitStringFileNames,"]",nameSplits);
+    string inBitStringSuffix=nameSplits[1];
+    StringUtil::split(nameSplits[0],"[",nameSplits);
+    string inBitStringPrefix=nameSplits[0];
+    StringUtil::split(nameSplits[1],",",nameSplits);
+
+    vector<OffProfileRecord> offProfiles;
+
+    for(int i=0;i<nameSplits.size();i++){
+        int passType;
+        if(i==0){
+            passType=COUNTSEQNEIGHBORS_FIRSTPASS;
+        }
+        else if(i==nameSplits.size()-1){
+            passType=COUNTSEQNEIGHBORS_LASTPASS;
+        }
+        else{
+            passType=COUNTSEQNEIGHBORS_MIDPASS;
+        }
+        string inBitStringFileName=inBitStringPrefix+nameSplits[i]+inBitStringSuffix;
+        
+        countSeqNeighbors_prefixed_multi_offsitecounts_sub(inBitStringFileName, kmer, mthres, searchListFileName,  nameSplits[i], col0, sep, splitCom0, offProfiles, passType);
+    }
+
+    time_t now_time=time(NULL);
+    cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    return 0;
+    
+
+}
+
+#endif //__MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS
 
 
 

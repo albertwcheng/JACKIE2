@@ -27,21 +27,12 @@ public:
     Byte* _data;
     
     #ifdef GZIP_BUFFER_LENGTH
-    bool gzBitString(const string& filename,uint64_t _numBits)
+    bool gzBitString(gzFile& file,uint64_t _numBits)
     {
         numBits=_numBits;
         numBytes=numBits/8;
         if(numBits%8>0){
             numBytes++;
-        }
-        
-        gzFile file;
-        file=gzopen(filename.c_str(),"r");
-        if(!file){
-            cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
-            return false;
-        }else{
-            cerr<<"gzopen of "<<filename<<" succeeded. Continue to load"<<endl;
         }
 
         _data=new Byte[numBytes];
@@ -66,6 +57,27 @@ public:
                     }
                 }
             }
+        }
+
+        return true;
+
+    }
+
+
+
+    bool gzBitString(const string& filename,uint64_t _numBits)
+    {
+        gzFile file;
+        file=gzopen(filename.c_str(),"r");
+        if(!file){
+            cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
+            return false;
+        }else{
+            cerr<<"gzopen of "<<filename<<" succeeded. Continue to load"<<endl;
+        }
+
+        if(!gzBitString(file,_numBits)){
+            return false;
         }
 
         gzclose(file);
@@ -112,7 +124,19 @@ public:
             ifil.close();
         }
     }
-    
+
+
+     BitString(gzFile& file,uint64_t _numBits=0):_data(NULL){
+        #ifndef GZIP_BUFFER_LENGTH
+        _numBits=0;
+        #endif 
+
+        
+        gzBitString(file,_numBits);
+
+
+    }
+
     const BitString& operator-=(const BitString& _right){
         for(uint64_t i=0;i<numBytes;i++){
             _data[i]&=(~_right._data[i]);
@@ -211,17 +235,8 @@ public:
         ofil.close();
     }
 
-    bool writeToFileGZ(const string&filename)
-    {
-        gzFile file;
-        file=gzopen(filename.c_str(),"w");
-        if(!file){
-            cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
-            return false;
-        }else{
-            cerr<<"gzopen of "<<filename<<" succeeded. Proceed to writing "<<numBytes<<" bytes"<<endl;
-        }
 
+    bool writeToFileGZ(gzFile& file){
         uint64_t numBytesRemaining=numBytes;
 
         for(uint64_t i=0;i<numBytes;i+=GZIP_WRITE_BUFFER_LENGTH){
@@ -247,7 +262,24 @@ public:
             }
 
             numBytesRemaining-=byte_written;
-        }        
+        }
+
+        return true;
+    }
+
+    bool writeToFileGZ(const string&filename)
+    {
+        gzFile file;
+        file=gzopen(filename.c_str(),"w");
+        if(!file){
+            cerr<<"gzopen of "<<filename<<" failed "<<strerror(errno)<<endl;
+            return false;
+        }else{
+            cerr<<"gzopen of "<<filename<<" succeeded. Proceed to writing "<<numBytes<<" bytes"<<endl;
+        }
+
+        if(!writeToFileGZ(file))
+            return false;
 
         gzclose(file);
         return true;
