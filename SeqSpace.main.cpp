@@ -1074,6 +1074,7 @@ class StepwiseSeqSpaceWithMotifsMultiBits
     uint64_t maxBitEncodedValue;
     SeqSpace** spaces;
     map<uint64_t,uint16_t> overflowSeqToCountMap;
+    map<uint64_t,uint64_t> overflowSeqToCountMap2;
     //string prefix;
 
     int motifLength;
@@ -1212,6 +1213,11 @@ class StepwiseSeqSpaceWithMotifsMultiBits
             return;
         uint64_t numOverflowElements=readInt;
 
+        if(!gz_read_uint64(file,&readInt)) //num of overflow elements
+            return;
+        uint64_t numOverflowElements2=readInt;
+
+
         this->maxBitEncodedValue=(1<<(numBitsPerSeq))-2;
         this->spaces=new SeqSpace*[numBitsPerSeq];
 
@@ -1237,7 +1243,20 @@ class StepwiseSeqSpaceWithMotifsMultiBits
         }
         cerr<<"done loading overflow elements"<<endl;
 
+        cerr<<"prepare to load "<< numOverflowElements<<" overflow-2 elements"<<endl;
+        for(uint64_t i=0;i<numOverflowElements2;i++){
+            uint64_t key;
+            uint64_t value;
+            if(!gz_read_uint64(file,&key))
+                return;
 
+            if(!gz_read_uint64(file,&value))
+                return;
+            
+            overflowSeqToCountMap2.insert(map<uint64_t,uint64_t>::value_type(key,value));
+
+        }
+        cerr<<"done loading overflow-2 elements"<<endl;
         //cerr<<"_prefix="<<StepwiseSeqSpace::getPrefixMaskString(_kmer+_prefix.length(),_prefix)<<endl;
         //cerr<<"\tAND="<<this->prefix_mask->ANDToString()<<endl;
         //cerr<<"\t OR="<<this->prefix_mask->ORToString()<<endl;
@@ -1251,8 +1270,8 @@ class StepwiseSeqSpaceWithMotifsMultiBits
     //StepwiseSeqSpace(int _kmer,string inBitStringFileName, bool _useGzip=false):SeqSpace(_kmer,inBitStringFileName,_useGzip){
     //    init_StepwiseSeqSpace(_kmer);
     //}    
-    inline uint16_t getIndexCount(uint64_t _idx){
-        uint16_t counts=spaces[numBitsPerSeq-1]->bits.getBit(_idx);
+    inline uint64_t getIndexCount(uint64_t _idx){
+        uint64_t counts=spaces[numBitsPerSeq-1]->bits.getBit(_idx);
  
         for(int i=numBitsPerSeq-2;i>=0;i--){
             counts<<=1;
@@ -1270,6 +1289,18 @@ class StepwiseSeqSpaceWithMotifsMultiBits
                 return counts;
             }else{
                 counts=findI->second;
+                if(counts==65535){
+                    //overflow to map2
+                    map<uint64_t,uint64_t>::iterator findI2=overflowSeqToCountMap2.find(_idx);
+                    if(findI2==overflowSeqToCountMap2.end()){
+                        cerr<<"unexpected error"<<endl;
+                        exit(1);
+                        return counts;
+                    }
+                    else{
+                        counts=findI2->second;
+                    }
+                }
                 
             }
         }
@@ -1299,8 +1330,12 @@ class StepwiseSeqSpaceWithMotifsMultiBits
             //setup new count map entry
             overflowSeqToCountMap.insert(map<uint64_t,uint16_t>::value_type(_idx,maxBitEncodedValue+1));
         }else if(curIndexedCount>maxBitEncodedValue){
-            if(curIndexedCount==65535){
-                cerr<<"count overflow for "<<_idx<<":"<<indexToSeq(_idx)<<endl;
+            if(curIndexedCount==65534){
+                //cerr<<"count overflow for "<<_idx<<":"<<indexToSeq(_idx)<<endl;
+                overflowSeqToCountMap[_idx]=65535;
+                overflowSeqToCountMap2.insert(map<uint64_t,uint64_t>::value_type(_idx,65535));
+            }else if(curIndexedCount>=65535){
+                overflowSeqToCountMap2[_idx]++;
             }else{
                 overflowSeqToCountMap[_idx]++;
             }
@@ -1624,7 +1659,12 @@ class StepwiseSeqSpaceWithMotifsMultiBits
         if(!gz_write_uint64_t(file,this->overflowSeqToCountMap.size()))
             return false;        
 
-        
+        //how many items in overflow map2
+        cerr<<"number of items in overflow map2="<<this->overflowSeqToCountMap2.size()<<endl;
+        if(!gz_write_uint64_t(file,this->overflowSeqToCountMap2.size()))
+            return false;    
+
+
         for(int i=0;i<numBitsPerSeq;i++){
             if(!this->spaces[i]->bits.writeToFileGZ(file))
                 return false;
@@ -1639,6 +1679,17 @@ class StepwiseSeqSpaceWithMotifsMultiBits
                 return false;  
         }
         cerr<<"done writing overflow map"<<endl;
+
+        cerr<<"start writing overflow map2"<<endl;
+        for(map<uint64_t,uint64_t>::iterator i=overflowSeqToCountMap2.begin();i!=overflowSeqToCountMap2.end();i++){
+            if(!gz_write_uint64_t(file,i->first))
+                return false;           
+            if(!gz_write_uint64_t(file,i->second))
+                return false;  
+        }
+        cerr<<"done writing overflow map2"<<endl;
+
+
         gzclose(file);
         return true;
     }
