@@ -38,7 +38,14 @@
 #include "NucleicBit.h"
 #include "KeyedPosition.h"
 
-
+void printJACKIELogo(ostream &os){
+    os<<"     ██╗ █████╗  ██████╗██╗  ██╗██╗███████╗"<<endl;
+    os<<"     ██║██╔══██╗██╔════╝██║ ██╔╝██║██╔════╝"<<endl;
+    os<<"     ██║███████║██║     █████╔╝ ██║█████╗  "<<endl;
+    os<<"██   ██║██╔══██║██║     ██╔═██╗ ██║██╔══╝  "<<endl;
+    os<<"╚█████╔╝██║  ██║╚██████╗██║  ██╗██║███████╗"<<endl;
+    os<<" ╚════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝╚══════╝"<<endl;
+}
 
 
 
@@ -654,7 +661,7 @@ void foldGenomics_sortCompact(int argc,const char**argv)
 
 int main(int argc, const char **argv)
 {
-
+	printJACKIELogo(cerr);
 	cerr<<"JACKIE (Jackie & Albert's CRISPR k-mer instance enumerator) v2.0"<<endl;
 	cerr<<"[Built:"<<__DATE__<<" "<<__TIME__<<"]"<<endl;	
 	#ifdef __BIN_MAIN__

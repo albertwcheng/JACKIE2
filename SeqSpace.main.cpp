@@ -21,6 +21,16 @@ using namespace std;
 string BitString::mmapfilename;
 #endif
 
+void printJACKIELogo(ostream &os){
+    os<<"     ██╗ █████╗  ██████╗██╗  ██╗██╗███████╗"<<endl;
+    os<<"     ██║██╔══██╗██╔════╝██║ ██╔╝██║██╔════╝"<<endl;
+    os<<"     ██║███████║██║     █████╔╝ ██║█████╗  "<<endl;
+    os<<"██   ██║██╔══██║██║     ██╔═██╗ ██║██╔══╝  "<<endl;
+    os<<"╚█████╔╝██║  ██║╚██████╗██║  ██╗██║███████╗"<<endl;
+    os<<" ╚════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝╚══════╝"<<endl;
+}
+
+
 int printUsageAndExit(string programName)
 {
     cerr<<programName<<" kmer fasta1 fasta2 ... fastaN"<<endl;
@@ -1243,7 +1253,7 @@ class StepwiseSeqSpaceWithMotifsMultiBits
         }
         cerr<<"done loading overflow elements"<<endl;
 
-        cerr<<"prepare to load "<< numOverflowElements<<" overflow-2 elements"<<endl;
+        cerr<<"prepare to load "<< numOverflowElements2<<" overflow-2 elements"<<endl;
         for(uint64_t i=0;i<numOverflowElements2;i++){
             uint64_t key;
             uint64_t value;
@@ -2852,6 +2862,7 @@ int main(int argc,char **argv)
     extra_settings+=" GZIP=True";
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write "<<extra_settings<<endl;
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.encodeSeqSpace"<<extra_settings<<endl;
 
     if(argc<3){
@@ -2931,7 +2942,7 @@ int main(int argc,char **argv)
     #endif //__FAST_IO__
 
     extra_settings+=" GZIP=True";
-
+    printJACKIELogo(cerr);
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
     #ifdef __USE_MMAP__
     cerr<<"JACKIE.encodeSeqSpaceNGG.mmap"<<extra_settings<<endl;
@@ -3037,7 +3048,7 @@ int main(int argc,char **argv)
     extra_settings+=" GZIP=True";
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
-
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.encodeSeqSpace.prefixed"<<extra_settings<<endl;
 
 
@@ -3134,7 +3145,7 @@ int main(int argc,char **argv)
     extra_settings+=" GZIP=True";
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Write NGG "<<extra_settings<<endl;
-
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.encodeSeqCountDatabase"<<extra_settings<<endl;
 
 
@@ -3235,6 +3246,7 @@ int main(int argc,char **argv)
     #endif
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.countSeqNeighbors "<<extra_settings<<endl;
 
 
@@ -3439,6 +3451,7 @@ int main(int argc,char **argv)
     #endif
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.countSeqNeighbors.pmulti "<<extra_settings<<endl;
 
 
@@ -3614,6 +3627,7 @@ int main(int argc,char **argv)
     #endif
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.countOffSites "<<extra_settings<<endl;
 
 
@@ -3708,6 +3722,7 @@ int main(int argc,char **argv)
     #endif
 
     //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    printJACKIELogo(cerr);
     cerr<<"JACKIE.countSeqNeighbors.prefixed "<<extra_settings<<endl;
 
 
