@@ -1,10 +1,10 @@
 # JACKIE2
 
-     ██╗ █████╗  ██████╗██╗  ██╗██╗███████╗
-     ██║██╔══██╗██╔════╝██║ ██╔╝██║██╔════╝
-     ██║███████║██║     █████╔╝ ██║█████╗  
-██   ██║██╔══██║██║     ██╔═██╗ ██║██╔══╝  
-╚█████╔╝██║  ██║╚██████╗██║  ██╗██║███████╗
+#     ██╗ █████╗  ██████╗██╗  ██╗██╗███████╗
+#     ██║██╔══██╗██╔════╝██║ ██╔╝██║██╔════╝
+#     ██║███████║██║     █████╔╝ ██║█████╗  
+#██   ██║██╔══██║██║     ██╔═██╗ ██║██╔══╝  
+#╚█████╔╝██║  ██║╚██████╗██║  ██╗██║███████╗
 
 
 JACKIE (Jackie and Albert's CRISPR K-mer Instances Enumerator) [yes, a recursive acronym!], is a software pipeline written mainly in C++ with accessory scripts written in bash and python languges, that allows enumeration of all kmer (e.g., SpCas9 binding sites, ZFPs) in a genome and output their sequences, copy numbers and locations. We have demonstrated its application to design sgRNA with clustered repetitive binding sites for imaging genomic region. Please see the [preprint](https://doi.org/10.1101/2020.02.27.968933) for more details. JACKIE2 is a new version that incorporates the fast computation of off-target sequence neighbors, allowing for example >50 million sequences to be checked for off-target sequence neighbors up to 3 mismatches in less than 12 hours.
