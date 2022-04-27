@@ -1,3 +1,4 @@
+:https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
 chr2	1	500000
 chrX	4	24

@@ -24,7 +24,7 @@ int maxItems = 0;
 int *gFilterMins=NULL;
 int *gFilterMaxs=NULL;
 int gFilterMaxColNum1=0;
-
+char * gInBB=NULL;
 void usage()
 /* Explain usage and exit. */
 {
@@ -44,6 +44,15 @@ errAbort(
   "   chr2\t200\t100000\n"
   "   $17\t40\t60\n"
   "   $14\t0\t3\n"
+  "   if intput.bb (by adding a line preceded by colon,i.e., :input.bb) included in filter.txt, run bigBedToBedPlus -filter=filter.txt\n"
+  "   filter.txt:\n"
+  "   :input.bb\n"
+  "   chr1\t1\t50000\n"
+  "   chr1\t1\t50000\n"
+  "   chr2\t200\t100000\n"
+  "   $17\t40\t60\n"
+  "   $14\t0\t3\n"
+
   );
 }
 
@@ -403,6 +412,14 @@ void readChromRangeFile(const char*filename){
 
         }
 
+        if(line[0]==':'){
+            gInBB=(char*)malloc(strlen(line));
+            strcpy(gInBB,line+1);
+            gInBB[strlen(line)-2]='\0';
+            //printf("get file[%s]",gInBB);
+            continue;
+        }
+
         while( token != NULL ) {
             //printf( "\t%s\n", token );
             switch(level){
@@ -474,9 +491,14 @@ if(clRangeListFile){
 maxItems = optionInt("maxItems", maxItems);
 udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
 
-if (argc != 2)
-    usage();
-bigBedToBed(argv[1]);
+if(gInBB){
+    bigBedToBed(gInBB);
+}else{
+    if (argc != 2)
+        usage();
+    bigBedToBed(argv[1]);
+}
+
 if (verboseLevel() > 1)
     printVmPeak();
 
@@ -484,6 +506,9 @@ if (verboseLevel() > 1)
 freeRangeList();
 //freeFilters();
 freeFilterArrays();
+
+if(gInBB)
+    free(gInBB);
 
 return 0;
 }
