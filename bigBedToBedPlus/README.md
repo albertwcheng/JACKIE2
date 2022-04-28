@@ -2,7 +2,7 @@
 
 bigBedToBedPlus is a modified version of Kent's bigBedToBed which allows the extraction of multiple regions simultaneously, as well as allowing for filtering of integer-based fields of custom bigBed format. Also allows for the selection of a specified number of best bed items according to a series of column sorting criteria.
 
-Binary is available for Mac M1 Chip under the Mac_AppleM1_binary_Arm64 folder
+Binaries are available for Mac M1 Chip under the Mac_AppleM1_binary_Arm64 folder and Unix (x86_64) under Unix_Binary_x86_64
 To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
 
 Usage: bedBedToBedPlus [-filter <filterFile>] input.bb 
