@@ -141,5 +141,5 @@ chr2	72890	72910	8539156629285802011.1/GGAACCAATACGGGGCCATG	1	-	72890	72910	0,0,
 # Building bigBedToBedPlus
 Download kent code: https://github.com/ucscGenomeBrowser/kent and follow build instructions
 
-To build this, place this folder under kent source tree under folder kent/src/utils/ (i.e., make this folder kent/src/utils/bigBedToBedPlus) , then run ```make``` on kent/src level first, then go into bigBedToBedPlus and run ```make```.
+To build this, place this folder under kent source tree under folder kent/src/utils/ (i.e., make this folder kent/src/utils/bigBedToBedPlus) , then run ```make``` inside.
 
