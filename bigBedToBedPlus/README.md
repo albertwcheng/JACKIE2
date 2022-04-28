@@ -66,7 +66,7 @@ chr1	54472	54492	8124609316492752457.1/CCCGGTAGAGTATTTGAAGA	1	-	54472	54492	0,0,
 ```
 
 The genomic regions of interest are supplied in a txt file and supplied as an ```-filter filter.txt``` option to the program
-The filter.txt file should contains each line chr <tab> start <tab> end, e.g.,
+The filter.txt file should contains each line ```chr```tab```start```tab```end```, e.g.,
 ```
 chr1	1	500000
 chr2	1	1000000
@@ -82,7 +82,7 @@ chr1	1	500000
 chr2	1	1000000
 ```
 # Filtering
-The filter.txt can contain $column_number <tab> min <tab> max to filter items with column integer values within min and max inclusive. tab delimited fields 4+ are ignored and can be used for commenting, #COMMENTS. 
+The filter.txt can contain ```$column_number``` tab ```min``` tab ```max``` to filter items with column integer values within min and max inclusive. tab delimited fields 4+ are ignored and can be used for commenting, ```#COMMENTS```. 
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
@@ -108,7 +108,11 @@ chr1	263706	263726	8359534363805562568.1/ACGGGTGTTTTGGATAGAAT	1	-	263706	263726	
 
 ```
 # Selecting best items
-The filter.txt can direct the program to only print out the best N items according to a sort lists
+The filter.txt can direct the program to only print out the best N items according to a sort lists, using
+```!BEST```tab```number_of_items``` to specify the number of items to print per region
+```!MIN```tab```column_number``` to minimize value in the specified column (i.e., sort ascending)
+```!MAX```tab```column_number``` to maxmize value in the specified column (i.e., sort descending)
+
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
