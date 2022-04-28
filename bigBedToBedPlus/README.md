@@ -2,7 +2,7 @@
 
 bigBedToBedPlus is a modified version of Kent's bigBedToBed which allows the extraction of multiple regions simultaneously, as well as allowing for filtering of integer-based fields of custom bigBed format. Also allows for the selection of a specified number of best bed items according to a series of column sorting criteria.
 
-Binary is available for Mac M1 Chip.
+Binary is available for Mac M1 Chip under the Mac_AppleM1_binary_Arm64 folder
 To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
 
 Usage: bedBedToBedPlus [-filter <filterFile>] input.bb 
@@ -66,7 +66,7 @@ An example item (a 1 copy gRNA with 2 1-mismatch and 1 3-mismatch off-targets)
 chr1	54472	54492	8124609316492752457.1/CCCGGTAGAGTATTTGAAGA	1	-	54472	54492	0,0,0	1	2	0	1	3	1/2/0/1	CCCGGTAGAGTATTTGAAGA	45	3
 ```
 
-The genomic regions of interest are supplied in a txt file and supplied as an ```-filter filter.txt``` option to the program
+The genomic regions of interest are supplied in a txt file and supplied as an ```-filter=filter.txt``` option to the program
 The filter.txt file should contains each line ```chr```tab```start```tab```end```, e.g.,
 ```
 chr1	1	500000
@@ -74,9 +74,9 @@ chr2	1	1000000
 ```
 Example: To run with filter file:
 ```
-bedBedToBedPlus -filter filter.txt https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb 
+bedBedToBedPlus -filter=filter.txt https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb 
 ```
-The filter.txt file can also contain the input.bb filename by adding :input.bb, and in command line only run with ```bedBedToBedPlus -filter filter.txt```
+The filter.txt file can also contain the input.bb filename by adding :input.bb, and in command line only run with ```bedBedToBedPlus -filter=filter.txt```
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
@@ -139,5 +139,7 @@ chr2	72890	72910	8539156629285802011.1/GGAACCAATACGGGGCCATG	1	-	72890	72910	0,0,
 ```
 
 # Building bigBedToBedPlus
-To compile this, place this folder under kent source tree under folder kent/src/utils/ (i.e., make this folder kent/src/utils/bigBedToBedPlus) , then run ```make``` on kent/src level first, then go into bigBedToBedPlus and run ```make```.
+Download kent code: https://github.com/ucscGenomeBrowser/kent and follow build instructions
+
+To build this, place this folder under kent source tree under folder kent/src/utils/ (i.e., make this folder kent/src/utils/bigBedToBedPlus) , then run ```make``` on kent/src level first, then go into bigBedToBedPlus and run ```make```.
 
