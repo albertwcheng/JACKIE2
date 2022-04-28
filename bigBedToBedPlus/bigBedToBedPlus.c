@@ -17,7 +17,7 @@
 #include "asParse.h"
 #include "obscure.h"
 
-
+int gWriteQueryToName=FALSE;
 char *clRangeListFile = NULL;
 int maxItems = 0;
 
@@ -29,13 +29,14 @@ void usage()
 /* Explain usage and exit. */
 {
 errAbort(
-  "bigBedToBedPlus v1 - Convert from bigBed to ascii bed format and print to STDOUT with ranges and filters provided in rangeListFile.\n"
+  "bigBedToBedPlus v1.2 - Convert from bigBed to ascii bed format and print to STDOUT with ranges and filters provided in rangeListFile.\n"
   "usage:\n"
   "   bigBedToBedPlus input.bb\n"
   "options:\n"
+  "   -addQueryRangeToName - if set, add query name to name field of output\n"
   "   -maxItems=N - if set, restrict output to first N items\n"
   "   -udcDir=/dir/to/cache - place to put cache for remote bigBed/bigWigs\n"
-  "   -filter=filename - if set restrict output to given list of chr start end in the specific file\n" 
+  "   -filter=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera\n" 
   "   The range file contains each row tab delimited chr start end for chrom ranges or $col min max for min-max inclusive filtering for col\n"
   "   For example extract items within chr1:1-50000 or chr2:200-100000 with column 17 in range from 40 to 60 inclusive and column 14 in range from 0 to 3 inclusive:\n"
   "   run bigBedToBedPlus -filter=filter.txt input.bb\n"
@@ -496,6 +497,7 @@ static struct optionSpec options[] = {
    {"filter", OPTION_STRING},
    {"maxItems", OPTION_INT},
    {"udcDir", OPTION_STRING},
+   {"addQueryRangeToName", OPTION_BOOLEAN},
    {"header", OPTION_BOOLEAN},
    {NULL, 0},
 };
@@ -548,7 +550,8 @@ if(gBestNum>0){
     thisData=createLineData(gSortCrtieriaMaxColNum1,"NNN");
 }
 
-
+char queryRange[100];
+queryRange[0]='\0';
 
 
 struct bbiChromInfo *chrom, *chromList = bbiChromList(bbi);
@@ -594,7 +597,9 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
 
             gNumFilled=0;
 
-
+            if(gWriteQueryToName){
+                sprintf(queryRange,"%s:%d-%d/",chromName,start,end);
+            }
 
             for (interval = intervalList; interval != NULL; interval = interval->next)
             {
@@ -646,20 +651,20 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
 
                             if(gBestNum>0){
                                 makeSureLineDataStringHaveAtLeast(thisData,strlen(rest)+1000);
-                                sprintf(thisData->line,"%s\t%u\t%u\t%s\n", chromName, interval->start, interval->end, rest);
+                                sprintf(thisData->line,"%s\t%u\t%u\t%s%s\n", chromName, interval->start, interval->end, queryRange, rest);
 
                                 updateBests(thisData);
 
                             }else{
                                 printf("%s\t%u\t%u", chromName, interval->start, interval->end);
-                                printf("\t%s\n", rest);
+                                printf("\t%s%s\n", queryRange,rest);
                             }
                         }
 
                     }
                     else{
                         printf("%s\t%u\t%u", chromName, interval->start, interval->end);
-                        printf("\t%s\n", rest);
+                        printf("\t%s%s\n", queryRange, rest);
                     }
                 }
                 else{
@@ -869,6 +874,7 @@ if(gNumSortCriteria>0){
 
 maxItems = optionInt("maxItems", maxItems);
 udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
+gWriteQueryToName = optionExists("addQueryRangeToName");
 
 transferSortCriteriaToArray();
 //printSortCriteria();
