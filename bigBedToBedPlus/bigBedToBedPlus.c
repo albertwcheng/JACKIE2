@@ -44,7 +44,7 @@ errAbort(
   "   chr2\t200\t100000\n"
   "   $17\t40\t60\n"
   "   $14\t0\t3\n"
-  "   if intput.bb (by adding a line preceded by colon,i.e., :input.bb) included in filter.txt, run bigBedToBedPlus -filter=filter.txt\n"
+  "   include input.bb in filter.txt by adding a line preceded by colon,i.e., :input.bb, run bigBedToBedPlus -filter=filter.txt\n"
   "   filter.txt:\n"
   "   :input.bb\n"
   "   chr1\t1\t50000\n"
@@ -52,10 +52,125 @@ errAbort(
   "   chr2\t200\t100000\n"
   "   $17\t40\t60\n"
   "   $14\t0\t3\n"
-
+  "   include !MIN min, !MAX max and !BEST numItems to select the best numItems items sorting with ascending(min) or descending(max) on the specificed columns in the order as they appear in the filter.txt.\n"
+  "   For example, 4 best items sorting first ascending with col 14, then descending with col 17\n"
+  "   filter.txt:\n"
+  "   :input.bb\n"
+  "   chr1\t1\t50000\n"
+  "   chr1\t1\t50000\n"
+  "   chr2\t200\t100000\n"
+  "   $17\t40\t60\n"
+  "   $14\t0\t3\n"
+  "   !BEST\t4\n"
+  "   !MIN\t14\n"
+  "   !MAX\t17\n"  
   );
 }
 
+
+/* TODO bests
+
+
+
+
+int gBestNum=0;
+
+//local
+int numFilled=0;
+
+
+//every new data encountered:
+
+    int betterThan=-1;
+    for(int i=0;i<numFilled;i++){
+        if(better(thisData,bests[i])){
+            //thisData better than bests[i]
+            betterThan=i;
+        }else{
+            break; //not better than this, no need to go forward
+        }
+    }
+
+    if(numFilled<gBestNum){
+        numFilled++;
+        for(int i=numFilled-1;i>betterThan+1;i--){
+            bests[i]=bests[i-1]; //move up
+        }
+        bests[betterThan+1]=copyData(thisData);
+    }
+    else{
+        //numFilled==gBestNum
+        if(betterThan>=0){
+            //thisData better than the least best
+            removeData(bests[0]);
+            for(int i=0;i<betterThan;i++){
+                bests[i]=bests[i+1];
+            }
+            bests[betterThan]=copyData(thisData);
+        }
+
+    }
+
+
+
+
+//when all done:
+
+    for(int i=0;i<numFilled;i++){
+        removeData(thisData);
+    }
+
+
+
+*/
+
+typedef struct LineData {
+    int *colValues;
+    int numColValues;
+    char *line;
+    int lineBufferLength;
+} LineData;
+
+LineData* createLineData(int _numColValues,const char*_line){
+    LineData* newLineData=(LineData*)malloc(sizeof(LineData));
+    newLineData->numColValues=_numColValues;
+    newLineData->colValues=(int*)malloc(sizeof(int)*_numColValues);
+    newLineData->line=(char*)malloc(strlen(_line)+1);
+    newLineData->lineBufferLength=strlen(_line)+1;
+    strcpy(newLineData->line,_line);
+    return newLineData;
+}
+
+LineData* duplicateLineData(const LineData*src){
+    LineData* newLineData=createLineData(src->numColValues,src->line);
+    for(int i=0;i<src->numColValues;i++){
+        newLineData->colValues[i]=src->colValues[i];
+    }
+    return newLineData;
+}
+
+void freeLineData(LineData *target){
+    free(target->colValues);
+    free(target->line);
+    free(target);
+}
+
+int getColValueFromLineData(LineData* src,int _col1){
+    return src->colValues[_col1-1];
+}
+
+void setLineDataColValue(LineData* target,int _col1, int _setvalue){
+    target->colValues[_col1-1]=_setvalue;
+}
+
+void setLineDataLineString(LineData* target,const char*_str){
+    int incomingLength=strlen(_str);
+    if(incomingLength+1>target->lineBufferLength){
+        free(target->line);
+        target->line=(char*)malloc(incomingLength+1);
+    }
+    strcpy(target->line,_str);
+}
 
 
 struct FilterColumnCriteria{
@@ -128,7 +243,109 @@ void freeFilterArrays(){
     
 }
 
+int gBestNum=0;
 
+#define SORT_MAX 1
+#define SORT_MIN 2
+
+typedef struct SortCriterion {
+    int type;
+    int colNum1;
+    struct SortCriterion* next;
+
+} SortCriterion;
+
+SortCriterion *gLastSortCriterion=NULL;
+SortCriterion *gSortCriteriaArray=NULL;
+int gNumSortCriteria=0;
+int gSortCrtieriaMaxColNum1=0;
+int *gSortWatchList=NULL;
+
+void addSortCriterion(int _type,int _colNum1 ){
+    SortCriterion *newSortCriterion=(SortCriterion*)malloc(sizeof(SortCriterion));
+    newSortCriterion->type=_type;
+    newSortCriterion->colNum1=_colNum1;
+    if(_colNum1>gSortCrtieriaMaxColNum1){
+        gSortCrtieriaMaxColNum1=_colNum1;
+    }
+    newSortCriterion->next=gLastSortCriterion;
+    gLastSortCriterion=newSortCriterion;
+    gNumSortCriteria++;
+}
+
+void transferSortCriteriaToArray(){
+    if(!gLastSortCriterion){
+        return;
+    }
+    gSortWatchList=(int*)malloc(gSortCrtieriaMaxColNum1*sizeof(int)+sizeof(int));
+    for(int i=0;i<=gSortCrtieriaMaxColNum1;i++){
+        gSortWatchList[i]=0;
+    }
+    gSortCriteriaArray=(SortCriterion*)malloc(gNumSortCriteria*sizeof(SortCriterion));
+    SortCriterion*x=gLastSortCriterion;
+    for(int i=gNumSortCriteria-1;i>=0;i--){
+        SortCriterion*xToFree=x;
+        x=x->next;
+        gSortCriteriaArray[i].type=xToFree->type;
+        gSortCriteriaArray[i].colNum1=xToFree->colNum1;
+        gSortWatchList[xToFree->colNum1]=1;
+        free(xToFree);
+    }
+}
+
+void printSortCriteria(){
+    if(gSortCriteriaArray){
+        for(int i=0;i<gNumSortCriteria;i++){
+            printf("Sort Criterion %d: %s on Column %d\n",i+1,(gSortCriteriaArray[i].type==SORT_MAX)?"MAX":"MIN",gSortCriteriaArray[i].colNum1);
+        }
+    }
+}
+
+void freeSortCriteria(){
+    if(gSortCriteriaArray){
+        free(gSortCriteriaArray);
+    }
+    if(gSortWatchList){
+        free(gSortWatchList);
+    }
+}
+
+
+int better(LineData* thisData,LineData* thatData){  //is thisData better than thatData according to the sort Criteria?
+    for(int i=0;i<gNumSortCriteria;i++){
+        int thisCol1=gSortCriteriaArray[i].colNum1;
+        int thisValue=getColValueFromLineData(thisData,thisCol1);
+        int thatValue=getColValueFromLineData(thatData,thisCol1);
+
+        switch(gSortCriteriaArray[i].type){
+            case SORT_MIN:
+            if(thisValue<thatValue)
+                return 1;
+            else if(thisValue>thatValue)
+                return 0;
+            break;
+            case SORT_MAX:
+            if(thisValue>thatValue)
+                return 1;
+            else if(thisValue<thatValue)
+                return 0;
+            break;
+        }
+    }
+
+    return 0;
+}
+
+
+void makeSureLineDataStringHaveAtLeast(LineData*_data,int _numchars){
+    if(_data->lineBufferLength<_numchars){
+        _data->lineBufferLength=_numchars;
+        if(_data->line){
+            free(_data->line);
+        }
+        _data->line=(char*)malloc(_numchars);
+    }
+}
 
 
 
@@ -221,6 +438,59 @@ void freeRangeList(){
 }
 
 
+LineData** gBests=NULL;
+int gNumFilled=0;
+
+
+void updateBests(LineData* thisData){
+
+    //printf("insert %d %d ",getColValueFromLineData(thisData,14),getColValueFromLineData(thisData,17));
+
+    int betterThan=-1;
+    for(int i=0;i<gNumFilled;i++){
+        if(better(thisData,gBests[i])){
+            //printf("bt [%d]:%d %d ,",i,getColValueFromLineData(gBests[i],14),getColValueFromLineData(gBests[i],17));
+            //thisData better than bests[i]
+            betterThan=i;
+        }else{
+            break; //not better than this, no need to go forward
+        }
+    }
+    
+    /*if(betterThan>=0)
+        printf("better than [%d]:%d %d\n",betterThan,getColValueFromLineData(gBests[betterThan],14),getColValueFromLineData(gBests[betterThan],17));
+    else
+        printf("better than nothing\n");*/
+
+    if(gNumFilled<gBestNum){
+        gNumFilled++;
+        for(int i=gNumFilled-1;i>betterThan+1;i--){
+            gBests[i]=gBests[i-1]; //move up
+        }
+        gBests[betterThan+1]=duplicateLineData(thisData);
+    }
+    else{
+        //numFilled==gBestNum
+        if(betterThan>=0){
+            //thisData better than the least best
+            freeLineData(gBests[0]);
+            for(int i=0;i<betterThan;i++){
+                gBests[i]=gBests[i+1];
+            }
+            gBests[betterThan]=duplicateLineData(thisData);
+        }
+
+    }
+    
+    /*for(int i=gNumFilled-1;i>=0;i--){
+        printf("%d %d\n",getColValueFromLineData(gBests[i],14),getColValueFromLineData(gBests[i],17));
+        
+    }
+    printf("------\n");*/
+
+}
+
+
 
 static struct optionSpec options[] = {
    {"filter", OPTION_STRING},
@@ -267,6 +537,20 @@ struct bbiFile *bbi = bigBedFileOpen(inFile);
 /*if (header)
     writeHeader(bbi, f);*/
 
+
+
+//create buffer for bests
+
+LineData *thisData=NULL;
+
+if(gBestNum>0){
+    gBests=(LineData**)malloc(sizeof(LineData*)*gBestNum);
+    thisData=createLineData(gSortCrtieriaMaxColNum1,"NNN");
+}
+
+
+
+
 struct bbiChromInfo *chrom, *chromList = bbiChromList(bbi);
 int itemCount = 0;
 for (chrom = chromList; chrom != NULL; chrom = chrom->next)
@@ -306,6 +590,12 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
             struct lm *lm = lmInit(0);
             struct bigBedInterval *interval, *intervalList = bigBedIntervalQuery(bbi, chromName, 
                 start, end, itemsLeft, lm);
+
+
+            gNumFilled=0;
+
+
+
             for (interval = intervalList; interval != NULL; interval = interval->next)
             {
             
@@ -315,7 +605,7 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
                 
                 if(rest!=NULL){
 
-                    if(gFilterMins){ //has some filters
+                    if(gFilterMins || gBests ){ //has some filters or select bests
 
                         int accepted=1; //assume all criteria OK
 
@@ -328,20 +618,23 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
 
                         while( token != NULL ) {
                             //printf( "\t%d:%s\n", level,token );
-                            if(level>gFilterMaxColNum1){
+                            /*if(level>gFilterMaxColNum1){
                                 break;
-                            }
+                            }*/
                             
-                            if(gFilterMins[level]!=SMALLEST_INT && atoi(token)<gFilterMins[level]){
+                            if(gFilterMins && level<=gFilterMaxColNum1 && gFilterMins[level]!=SMALLEST_INT && atoi(token)<gFilterMins[level]){
                                 accepted=0; //failed min requirement
                                 break;
                             }
 
-                            if(gFilterMaxs[level]!=SMALLEST_INT && atoi(token)>gFilterMaxs[level]){
+                            if(gFilterMaxs && level<=gFilterMaxColNum1 && gFilterMaxs[level]!=SMALLEST_INT && atoi(token)>gFilterMaxs[level]){
                                 accepted=0;
                                 break;
                             }
 
+                            if(thisData && level<=gSortCrtieriaMaxColNum1 && gSortWatchList[level]){
+                                setLineDataColValue(thisData,level,atoi(token));
+                            }
 
                             token = strtok(NULL, "\t");
 
@@ -350,8 +643,17 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
 
                         if(accepted){
                             repairStringAfterStrtok(rest,'\t',restLength);
-                            printf("%s\t%u\t%u", chromName, interval->start, interval->end);
-                            printf("\t%s\n", rest);
+
+                            if(gBestNum>0){
+                                makeSureLineDataStringHaveAtLeast(thisData,strlen(rest)+1000);
+                                sprintf(thisData->line,"%s\t%u\t%u\t%s\n", chromName, interval->start, interval->end, rest);
+
+                                updateBests(thisData);
+
+                            }else{
+                                printf("%s\t%u\t%u", chromName, interval->start, interval->end);
+                                printf("\t%s\n", rest);
+                            }
                         }
 
                     }
@@ -371,13 +673,31 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
             }
             lmCleanup(&lm);
 
+
+            for(int i=gNumFilled-1;i>=0;i--){
+                printf("%s",gBests[i]->line);
+                freeLineData(gBests[i]);
+            }
+
         }
         
     }
 bbiChromInfoFreeList(&chromList);
 //carefulClose(&f);
 bbiFileClose(&bbi);
+
+if(thisData){
+    freeLineData(thisData);
 }
+
+}
+
+#define READ_CHROM_RANGE 0
+#define READ_FILTER 1
+#define READ_MIN 2
+#define READ_MAX 3
+#define READ_NUMBEST 4
+
 
 void readChromRangeFile(const char*filename){
 
@@ -403,12 +723,17 @@ void readChromRangeFile(const char*filename){
         int _max=0;
 
         int level=0;
-        token = strtok(line, "\t");
-        int readFilter=0;
+        
+        int readType=READ_CHROM_RANGE;
+
+        if(line[0]=='#'){
+            //comment
+            continue;
+        }
 
         if(line[0]=='$'){
             //this is a filter
-            readFilter=1;
+            readType=READ_FILTER;
 
         }
 
@@ -420,26 +745,53 @@ void readChromRangeFile(const char*filename){
             continue;
         }
 
+        if(!strncmp(line,"!MIN",4)){
+            readType=READ_MIN;
+        }
+        if(!strncmp(line,"!MAX",4)){
+            readType=READ_MAX;
+        }
+        if(!strncmp(line,"!BEST",5)){
+            readType=READ_NUMBEST;
+        }
+
+        token = strtok(line, "\t");
+
         while( token != NULL ) {
             //printf( "\t%s\n", token );
             switch(level){
                 case 0:
-                    if(readFilter)
-                        colNum1=atoi(token+1); //skip "$"
-                    else
+                    if(readType==READ_CHROM_RANGE){
                         chrom=token;
+                    }
+                    else if(readType==READ_FILTER){
+                        colNum1=atoi(token+1); //skip "$"
+                    }
+                        
                 break;
                 case 1:
-                    if(readFilter)
-                        _min=atoi(token);
-                    else
+                    if(readType==READ_CHROM_RANGE){
                         start=atoi(token);
+                    }else if(readType==READ_FILTER){
+                        _min=atoi(token);
+                    }else if(readType==READ_MIN){
+                        addSortCriterion(SORT_MIN,atoi(token));
+                    }else if(readType==READ_MAX){
+                        addSortCriterion(SORT_MAX,atoi(token));
+                    }else if(readType==READ_NUMBEST){
+                        gBestNum=atoi(token);
+                    }
+                    
+                        
                 break;
                 case 2:
-                    if(readFilter)
-                        _max=atoi(token);
-                    else
+                    if(readType==READ_CHROM_RANGE){
                         end=atoi(token);
+                    }else if(readType==READ_FILTER){
+                        _max=atoi(token);
+                    }
+                    
+                        
                 break;
             }
 
@@ -465,8 +817,19 @@ void readChromRangeFile(const char*filename){
     fclose(fp);
 }
 
+void clean_up(){
+    freeSortCriteria();
+    freeRangeList();
+    freeFilterArrays();
 
+    if(gBests){
+        free(gBests);
+    }
 
+    if(gInBB)
+        free(gInBB);
+    
+}
 
 int main(int argc, char *argv[])
 /* Process command line. */
@@ -485,11 +848,33 @@ if(clRangeListFile){
     convertFiltersToArray();
 }
 
+if(gBestNum>0){
+    if(gNumSortCriteria==0){
+        printf("Error: !BEST specified but no sort criteria !MIN or !MAX specified\n");
+        clean_up();
+        usage();
+        return 1;
+    }
+}
 
+if(gNumSortCriteria>0){
+    if(gBestNum==0){
+        printf("Error: sort criteria !MIN or !MAX specified but !BEST not specified\n");
+        clean_up();
+        usage();
+        return 1;
+    }
+}
 
 
 maxItems = optionInt("maxItems", maxItems);
 udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
+
+transferSortCriteriaToArray();
+//printSortCriteria();
+
+//printf("NUMBEST=%d\n",gBestNum);
+
 
 if(gInBB){
     bigBedToBed(gInBB);
@@ -502,13 +887,7 @@ if(gInBB){
 if (verboseLevel() > 1)
     printVmPeak();
 
-
-freeRangeList();
-//freeFilters();
-freeFilterArrays();
-
-if(gInBB)
-    free(gInBB);
+clean_up();
 
 return 0;
 }
