@@ -2,7 +2,8 @@
 
 bigBedToBedPlus is a modified version of Kent's bigBedToBed which allows the extraction of multiple regions simultaneously, as well as allowing for filtering of integer-based fields of custom bigBed format. Also allows for the selection of a specified number of best bed items according to a series of column sorting criteria.
 
-For compilation, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
+Binary is available for Mac M1 Chip.
+To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
 
 Usage: bedBedToBedPlus [-filter <filterFile>] input.bb 
 For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus [-filter <filterFile>] input.bb  > output.bed )
