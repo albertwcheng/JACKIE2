@@ -137,7 +137,7 @@ chr2	46241	46261	8546153689510617305.1/CGGATCGCGCCAAGTATGTG	1	-	46241	46261	0,0,
 chr2	72890	72910	8539156629285802011.1/GGAACCAATACGGGGCCATG	1	-	72890	72910	0,0,0	1	0	0	0	0	1/0/0/0	GGAACCAATACGGGGCCATG	60	1
 
 ```
-#Other options
+## Other options
 Add query range to name so that the items printed is associated with the particular query genomic region
 ```bigBedToBedPlus -filter=filter.txt -addQueryRangeToName```
 output
