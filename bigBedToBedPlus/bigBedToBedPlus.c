@@ -799,11 +799,11 @@ void readChromRangeFile(const char*filename){
             level++;
         }     
 
-        if(chrom){
+        if(readType==READ_CHROM_RANGE){
             //printf("add range:%s:%d-%d\n",chrom,start,end);
             addRange(chrom,start,end);
 
-        }else{
+        }else if(readType==READ_FILTER){
             //filter
             addFilter(colNum1,_min,_max);
         }
@@ -814,7 +814,7 @@ void readChromRangeFile(const char*filename){
     if (line)
         free(line);
 
-    fclose(fp);
+
 }
 
 void clean_up(){
