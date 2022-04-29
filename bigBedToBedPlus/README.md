@@ -74,9 +74,9 @@ chr2	1	1000000
 ```
 Example: To run with filter file:
 ```
-bedBedToBedPlus -filter=filter.txt https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb 
+bedBedToBedPlus -filters=filter.txt https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb 
 ```
-The filter.txt file can also contain the input.bb filename by adding :input.bb, and in command line only run with ```bedBedToBedPlus -filter=filter.txt```
+The filter.txt file can also contain the input.bb filename by adding :input.bb, and in command line only run with ```bedBedToBedPlus -filters=filter.txt```
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
