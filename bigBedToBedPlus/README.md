@@ -5,7 +5,7 @@ bigBedToBedPlus is a modified version of Kent's bigBedToBed which allows the ext
 Binaries are available for Mac Mac_Binary_x86_64 folder and Unix (x86_64) under Unix_Binary_x86_64
 To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
 
-Usage: bedBedToBedPlus [-filter <filterFile>] input.bb 
+Usage: bedBedToBedPlus [-filters=filterFile] [-ranges=regions] input.bb 
 For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus [-filter <filterFile>] input.bb  > output.bed )
 
 
