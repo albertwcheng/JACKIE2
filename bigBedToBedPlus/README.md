@@ -6,7 +6,7 @@ Binaries are available for Mac Mac_Binary_x86_64 folder and Unix (x86_64) under 
 To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
 
 Usage: bedBedToBedPlus [-filters=filterFile] [-ranges=regions] input.bb 
-For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus [-filter <filterFile>] input.bb  > output.bed )
+For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus input.bb  > output.bed )
 
 
 ## Basic operations with examples
@@ -66,7 +66,7 @@ An example item (a 1 copy gRNA with 2 1-mismatch and 1 3-mismatch off-targets)
 chr1	54472	54492	8124609316492752457.1/CCCGGTAGAGTATTTGAAGA	1	-	54472	54492	0,0,0	1	2	0	1	3	1/2/0/1	CCCGGTAGAGTATTTGAAGA	45	3
 ```
 
-The genomic regions of interest are supplied in a txt file and supplied as an ```-filter=filter.txt``` option to the program
+The genomic regions of interest are supplied in a txt file and supplied as an ```-filters=filter.txt``` option to the program
 The filter.txt file should contains each line ```chr```tab```start```tab```end```, e.g.,
 ```
 chr1	1	500000
