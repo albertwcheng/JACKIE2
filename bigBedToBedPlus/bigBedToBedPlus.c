@@ -19,27 +19,42 @@
 
 int gWriteQueryToName=FALSE;
 char *clRangeListFile = NULL;
+char *clFilterFile=NULL;
 int maxItems = 0;
-
+boolean header=0;
+boolean gPrintComment=0;
 int *gFilterMins=NULL;
 int *gFilterMaxs=NULL;
 int gFilterMaxColNum1=0;
 char * gInBB=NULL;
+
+void replaceCharInString(char *target,char from,char to){
+    while((*target)!='\0'){
+        
+        if((*target)==from){
+            //fprintf(stderr,"%c->%c",from,to);
+            (*target)=to;
+        }
+        target++;
+    }
+}
+
 void usage()
 /* Explain usage and exit. */
 {
 errAbort(
   "bigBedToBedPlus v1.2 - Convert from bigBed to ascii bed format and print to STDOUT with ranges and filters provided in rangeListFile.\n"
   "usage:\n"
-  "   bigBedToBedPlus input.bb\n"
+  "   bigBedToBedPlus input.bb [inlineFiltersOrSelections(/separated) ... ]\n"
   "options:\n"
   "   -addQueryRangeToName - if set, add query name to name field of output\n"
   "   -maxItems=N - if set, restrict output to first N items\n"
   "   -udcDir=/dir/to/cache - place to put cache for remote bigBed/bigWigs\n"
-  "   -filter=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera\n" 
+  "   -ranges=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera\n" 
+  "   -filters=filename - same effect as ranges\n"
   "   The range file contains each row tab delimited chr start end for chrom ranges or $col min max for min-max inclusive filtering for col\n"
   "   For example extract items within chr1:1-50000 or chr2:200-100000 with column 17 in range from 40 to 60 inclusive and column 14 in range from 0 to 3 inclusive:\n"
-  "   run bigBedToBedPlus -filter=filter.txt input.bb\n"
+  "   run bigBedToBedPlus -filters=filter.txt input.bb\n"
   "   filter.txt:\n"
   "   chr1\t1\t50000\n"
   "   chr2\t200\t100000\n"
@@ -69,61 +84,6 @@ errAbort(
 }
 
 
-/* TODO bests
-
-
-
-
-int gBestNum=0;
-
-//local
-int numFilled=0;
-
-
-//every new data encountered:
-
-    int betterThan=-1;
-    for(int i=0;i<numFilled;i++){
-        if(better(thisData,bests[i])){
-            //thisData better than bests[i]
-            betterThan=i;
-        }else{
-            break; //not better than this, no need to go forward
-        }
-    }
-
-    if(numFilled<gBestNum){
-        numFilled++;
-        for(int i=numFilled-1;i>betterThan+1;i--){
-            bests[i]=bests[i-1]; //move up
-        }
-        bests[betterThan+1]=copyData(thisData);
-    }
-    else{
-        //numFilled==gBestNum
-        if(betterThan>=0){
-            //thisData better than the least best
-            removeData(bests[0]);
-            for(int i=0;i<betterThan;i++){
-                bests[i]=bests[i+1];
-            }
-            bests[betterThan]=copyData(thisData);
-        }
-
-    }
-
-
-
-
-//when all done:
-
-    for(int i=0;i<numFilled;i++){
-        removeData(thisData);
-    }
-
-
-
-*/
 
 typedef struct LineData {
     int *colValues;
@@ -175,6 +135,7 @@ void setLineDataLineString(LineData* target,const char*_str){
 
 
 struct FilterColumnCriteria{
+    char colString[100];
     int colNum1;
     int min;
     int max;
@@ -183,16 +144,18 @@ struct FilterColumnCriteria{
 
 struct FilterColumnCriteria* gFirstFilter=NULL;
 
-void addFilter(int _colNum1, int _min, int _max){
+
+
+
+
+void addFilter(char *_colString,int _colNum1, int _min, int _max){
     struct FilterColumnCriteria*  newFilter=(struct FilterColumnCriteria*)malloc(sizeof(struct FilterColumnCriteria));
+    strcpy(newFilter->colString,_colString);
     newFilter->next=gFirstFilter;
     newFilter->colNum1=_colNum1;
     newFilter->min=_min;
     newFilter->max=_max;
     gFirstFilter=newFilter;
-    if(_colNum1>gFilterMaxColNum1){
-        gFilterMaxColNum1=_colNum1;
-    }
 
 }
 
@@ -216,24 +179,7 @@ void freeFilters(){
 
 #define SMALLEST_INT -10000
 
-void convertFiltersToArray(){
-    if(!gFirstFilter)
-        return;
 
-    gFilterMins=(int*)malloc(gFilterMaxColNum1*sizeof(int)+sizeof(int));
-    gFilterMaxs=(int*)malloc(gFilterMaxColNum1*sizeof(int)+sizeof(int));
-    for(int i=0;i<=gFilterMaxColNum1;i++){
-        gFilterMins[i]=SMALLEST_INT;
-        gFilterMaxs[i]=SMALLEST_INT;
-    }
-    for(struct FilterColumnCriteria*x=gFirstFilter;x!=NULL;x=x->next){
-        gFilterMins[x->colNum1]=x->min;
-        gFilterMaxs[x->colNum1]=x->max;
-    }
-
-    freeFilters();
-    
-}
 
 void freeFilterArrays(){
     if(gFilterMins)
@@ -250,6 +196,7 @@ int gBestNum=0;
 #define SORT_MIN 2
 
 typedef struct SortCriterion {
+    char colString[100];
     int type;
     int colNum1;
     struct SortCriterion* next;
@@ -262,37 +209,23 @@ int gNumSortCriteria=0;
 int gSortCrtieriaMaxColNum1=0;
 int *gSortWatchList=NULL;
 
-void addSortCriterion(int _type,int _colNum1 ){
+void addSortCriterion(int _type,char* _colString,int _colNum1 ){
     SortCriterion *newSortCriterion=(SortCriterion*)malloc(sizeof(SortCriterion));
+    strcpy(newSortCriterion->colString,_colString);
     newSortCriterion->type=_type;
     newSortCriterion->colNum1=_colNum1;
-    if(_colNum1>gSortCrtieriaMaxColNum1){
+    /*if(_colNum1>gSortCrtieriaMaxColNum1){
         gSortCrtieriaMaxColNum1=_colNum1;
-    }
+    }*/
     newSortCriterion->next=gLastSortCriterion;
     gLastSortCriterion=newSortCriterion;
     gNumSortCriteria++;
 }
 
-void transferSortCriteriaToArray(){
-    if(!gLastSortCriterion){
-        return;
-    }
-    gSortWatchList=(int*)malloc(gSortCrtieriaMaxColNum1*sizeof(int)+sizeof(int));
-    for(int i=0;i<=gSortCrtieriaMaxColNum1;i++){
-        gSortWatchList[i]=0;
-    }
-    gSortCriteriaArray=(SortCriterion*)malloc(gNumSortCriteria*sizeof(SortCriterion));
-    SortCriterion*x=gLastSortCriterion;
-    for(int i=gNumSortCriteria-1;i>=0;i--){
-        SortCriterion*xToFree=x;
-        x=x->next;
-        gSortCriteriaArray[i].type=xToFree->type;
-        gSortCriteriaArray[i].colNum1=xToFree->colNum1;
-        gSortWatchList[xToFree->colNum1]=1;
-        free(xToFree);
-    }
-}
+
+
+
+
 
 void printSortCriteria(){
     if(gSortCriteriaArray){
@@ -363,7 +296,7 @@ struct RangeNode {
     struct StartEnd* firstStartEnd;
 };
 
-struct RangeNode *gHeadNode;
+struct RangeNode *gHeadNode=NULL;
 
 struct RangeNode* findChrom( struct RangeNode*headNode, const char*chrom){
     if(!headNode)
@@ -397,6 +330,7 @@ struct RangeNode* addChrom(struct RangeNode*headNode,const char* chrom){
 }
 
 void addRange(const char*chrom, int start, int end){
+    //printf("add range %s:%d-%d\n",chrom,start,end);
     struct RangeNode*foundChrom=findChrom(gHeadNode,chrom);
     if(!foundChrom){
         gHeadNode=addChrom(gHeadNode,chrom);
@@ -494,31 +428,126 @@ void updateBests(LineData* thisData){
 
 
 static struct optionSpec options[] = {
-   {"filter", OPTION_STRING},
+   {"filters", OPTION_STRING},
+   {"ranges", OPTION_STRING},
    {"maxItems", OPTION_INT},
    {"udcDir", OPTION_STRING},
    {"addQueryRangeToName", OPTION_BOOLEAN},
    {"header", OPTION_BOOLEAN},
+   {"printComments", OPTION_BOOLEAN},
    {NULL, 0},
 };
 
+char *gAsText;
+struct asObject *gAsObj;
+int gNeedAsObject=0;
 
-void writeHeader(struct bbiFile *bbi, FILE *f)
+void writeHeader(struct bbiFile *bbi)
 /* output a header from the autoSql in the file */
 {
-char *asText = bigBedAutoSqlText(bbi);
-if (asText == NULL)
-    errAbort("bigBed files does not contain an autoSql schema");
-struct asObject *asObj = asParseText(asText);
-char sep = '#';
-for (struct asColumn *asCol = asObj->columnList; asCol != NULL; asCol = asCol->next)
+
+char* sep=(char*)malloc(2);
+strcpy(sep,"#");
+
+    for (struct asColumn *asCol = gAsObj->columnList; asCol != NULL; asCol = asCol->next)
     {
-    fputc(sep, f);
-    fputs(asCol->name, f);
-    sep = '\t';
+        printf("%s%s",sep,asCol->name);
+        strcpy(sep,"\t");
     }
-fputc('\n', f);
+    printf("\n");
+
+free(sep);
+
 }
+
+int colStringToColNum1(char *colString){
+    int col1=1;
+    for (struct asColumn *asCol = gAsObj->columnList; asCol != NULL; asCol = asCol->next)
+    {
+        
+        if(!strcmp(asCol->name,colString)){
+            if(gPrintComment) printf("#%s->%d\n",colString,col1);
+            return col1;
+        }
+        col1++;
+    }
+    return -1;
+
+}
+
+
+void convertFiltersToArray(){
+    if(!gFirstFilter)
+        return;
+
+    for(struct FilterColumnCriteria*x=gFirstFilter;x!=NULL;x=x->next){
+        if(x->colNum1==SMALLEST_INT){
+            x->colNum1=colStringToColNum1(x->colString);
+            if(x->colNum1<1){
+                
+                errAbort("failed to find column with name %s",x->colString);
+                
+            }
+        }
+
+        if(x->colNum1>gFilterMaxColNum1){
+            gFilterMaxColNum1=x->colNum1;
+        }
+    }    
+
+
+
+    gFilterMins=(int*)malloc(gFilterMaxColNum1*sizeof(int)+sizeof(int));
+    gFilterMaxs=(int*)malloc(gFilterMaxColNum1*sizeof(int)+sizeof(int));
+    for(int i=0;i<=gFilterMaxColNum1;i++){
+        gFilterMins[i]=SMALLEST_INT;
+        gFilterMaxs[i]=SMALLEST_INT;
+    }
+    for(struct FilterColumnCriteria*x=gFirstFilter;x!=NULL;x=x->next){
+        gFilterMins[x->colNum1]=x->min;
+        gFilterMaxs[x->colNum1]=x->max;
+    }
+
+    freeFilters();
+    
+}
+
+
+void transferSortCriteriaToArray(){
+    if(!gLastSortCriterion){
+        return;
+    }
+    gSortWatchList=(int*)malloc(gSortCrtieriaMaxColNum1*sizeof(int)+sizeof(int));
+    for(int i=0;i<=gSortCrtieriaMaxColNum1;i++){
+        gSortWatchList[i]=0;
+    }
+    gSortCriteriaArray=(SortCriterion*)malloc(gNumSortCriteria*sizeof(SortCriterion));
+    SortCriterion*x=gLastSortCriterion;
+    for(int i=gNumSortCriteria-1;i>=0;i--){
+        SortCriterion*xToFree=x;
+        x=x->next;
+
+        //xToFree convert colString -> colNum1 TODO!!
+        if(xToFree->colNum1==SMALLEST_INT){
+            xToFree->colNum1=colStringToColNum1(xToFree->colString);
+            if(xToFree->colNum1<1){
+                
+
+                errAbort("failed to find column with name %s",xToFree->colString);
+                
+            }
+        }
+
+        if(xToFree->colNum1>gSortCrtieriaMaxColNum1){
+            gSortCrtieriaMaxColNum1=xToFree->colNum1;
+        }
+        gSortCriteriaArray[i].type=xToFree->type;
+        gSortCriteriaArray[i].colNum1=xToFree->colNum1;
+        gSortWatchList[xToFree->colNum1]=1;
+        free(xToFree);
+    }
+}
+
 
 void repairStringAfterStrtok(char *str,char delimiter,int length){
     for(int i=0;i<length;i++){
@@ -536,9 +565,20 @@ void bigBedToBed(char *inFile)
 {
 struct bbiFile *bbi = bigBedFileOpen(inFile);
 
-/*if (header)
-    writeHeader(bbi, f);*/
+if (header || gNeedAsObject){
 
+    gAsText= bigBedAutoSqlText(bbi);
+    if (gAsText == NULL)
+        errAbort("bigBed files does not contain an autoSql schema");
+
+    gAsObj = asParseText(gAsText);
+
+
+}
+
+//remember header before this.
+convertFiltersToArray();
+transferSortCriteriaToArray();
 
 
 //create buffer for bests
@@ -553,23 +593,35 @@ if(gBestNum>0){
 char queryRange[100];
 queryRange[0]='\0';
 
+if(header)
+    writeHeader(bbi);
 
 struct bbiChromInfo *chrom, *chromList = bbiChromList(bbi);
 int itemCount = 0;
+
+
+
 for (chrom = chromList; chrom != NULL; chrom = chrom->next)
     {
     /*if (clChrom != NULL && !sameString(clChrom, chrom->name))
         continue;*/
         //printf("traversing %s\n",chrom->name);
+        
 
-        if(!clRangeListFile){
-            //no range defined, add psuedorange
-            addRange(chrom->name,0,0);
+        struct RangeNode* chromRangeRequest;
+
+        if(gHeadNode) // ranges present
+        {
+            //printf("has head node %s",gHeadNode->chrom);
+            chromRangeRequest=findChrom(gHeadNode,chrom->name);
+            if(!chromRangeRequest) //this chromosome is not requested.
+                continue;
         }
-
-        struct RangeNode* chromRangeRequest=findChrom(gHeadNode,chrom->name);
-        if(!chromRangeRequest) //this chromosome is not requested.
-            continue;
+        else{ //no ranges, setup a fake one
+            //printf("set up fake rarnge for %s\n",chrom->name);
+            chromRangeRequest=addChrom(NULL,chrom->name);
+            addStartEndToChrom(chromRangeRequest,0,0);
+        }
 
         //printf("found\n");
         char *chromName = chrom->name;
@@ -578,6 +630,8 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
 
         for(struct StartEnd*startend=chromRangeRequest->firstStartEnd;startend!=NULL;startend=startend->next){ 
             //printf("request %s:%d-%d\n",chromRangeRequest->chrom,startend->start,startend->end);
+            if(gPrintComment) printf("#range=%s:%d-%d\n",chromRangeRequest->chrom,startend->start,startend->end);
+
             int start = 0, end = chrom->size;
             if (startend->start > 0)
                 start = startend->start;
@@ -685,6 +739,12 @@ for (chrom = chromList; chrom != NULL; chrom = chrom->next)
             }
 
         }
+
+        if(!gHeadNode){
+            free(chromRangeRequest->firstStartEnd);
+            free(chromRangeRequest->chrom);
+            free(chromRangeRequest);
+        }
         
     }
 bbiChromInfoFreeList(&chromList);
@@ -704,20 +764,11 @@ if(thisData){
 #define READ_NUMBEST 4
 
 
-void readChromRangeFile(const char*filename){
 
-    FILE * fp;
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t read;
+void parseFilterLine(char *line){
+        char colStringBuff[100];
+        colStringBuff[0]='\0';
 
-    fp = fopen(filename, "r");
-    if (fp == NULL)
-        exit(EXIT_FAILURE);
-
-    while ((read = getline(&line, &len, fp)) != -1) {
-        //printf("Retrieved line of length %zu:\n", read);
-        //printf("%s", line);
         char *token;
         
         char *chrom=NULL;
@@ -731,14 +782,24 @@ void readChromRangeFile(const char*filename){
         
         int readType=READ_CHROM_RANGE;
 
+        //replaceCharInString(line,'\r','\0');
+        replaceCharInString(line,'\n',' ');
+        if(strlen(line)<2)
+            return;
+
         if(line[0]=='#'){
             //comment
-            continue;
+            if(gPrintComment && strlen(line)>1 && line[1]=='#'){
+                //transfer comment into bed
+                printf("%s\n",line);
+            }
+            return;
         }
 
         if(line[0]=='$'){
             //this is a filter
             readType=READ_FILTER;
+            if(gPrintComment) printf("#%s\n",line);
 
         }
 
@@ -747,17 +808,20 @@ void readChromRangeFile(const char*filename){
             strcpy(gInBB,line+1);
             gInBB[strlen(line)-2]='\0';
             //printf("get file[%s]",gInBB);
-            continue;
+            return;
         }
 
         if(!strncmp(line,"!MIN",4)){
             readType=READ_MIN;
+            if(gPrintComment) printf("#%s\n",line);
         }
         if(!strncmp(line,"!MAX",4)){
             readType=READ_MAX;
+            if(gPrintComment) printf("#%s\n",line);
         }
         if(!strncmp(line,"!BEST",5)){
             readType=READ_NUMBEST;
+            if(gPrintComment) printf("#%s\n",line);
         }
 
         token = strtok(line, "\t");
@@ -770,7 +834,17 @@ void readChromRangeFile(const char*filename){
                         chrom=token;
                     }
                     else if(readType==READ_FILTER){
-                        colNum1=atoi(token+1); //skip "$"
+                        char*colString=token+1; //skip "$"
+                        if(colString[0]<'0' || colString[0]>'9') //not a number
+                        {
+                            gNeedAsObject=1;
+                            colNum1=SMALLEST_INT;
+                            strcpy(colStringBuff,colString);
+                        }
+                        else{
+                            colNum1=atoi(colString);
+                            colStringBuff[0]='\0';
+                        }
                     }
                         
                 break;
@@ -780,9 +854,21 @@ void readChromRangeFile(const char*filename){
                     }else if(readType==READ_FILTER){
                         _min=atoi(token);
                     }else if(readType==READ_MIN){
-                        addSortCriterion(SORT_MIN,atoi(token));
+                        if(token[0]<'0' || token[0]>'9') //not a number
+                        {
+                            gNeedAsObject=1;
+                            addSortCriterion(SORT_MIN,token,SMALLEST_INT);
+                        }else{
+                            addSortCriterion(SORT_MIN,"",atoi(token));
+                        }
                     }else if(readType==READ_MAX){
-                        addSortCriterion(SORT_MAX,atoi(token));
+                        if(token[0]<'0' || token[0]>'9') //not a number
+                        {
+                            gNeedAsObject=1;
+                            addSortCriterion(SORT_MAX,token,SMALLEST_INT);
+                        }else{                        
+                            addSortCriterion(SORT_MAX,"",atoi(token));
+                        }
                     }else if(readType==READ_NUMBEST){
                         gBestNum=atoi(token);
                     }
@@ -805,13 +891,32 @@ void readChromRangeFile(const char*filename){
         }     
 
         if(readType==READ_CHROM_RANGE){
-            //printf("add range:%s:%d-%d\n",chrom,start,end);
+            //printf("add range:%s\n",line);
             addRange(chrom,start,end);
 
         }else if(readType==READ_FILTER){
             //filter
-            addFilter(colNum1,_min,_max);
+            addFilter(colStringBuff,colNum1,_min,_max);
         }
+}
+
+
+void readChromRangeFile(const char*filename){
+
+    FILE * fp;
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen(filename, "r");
+    if (fp == NULL)
+        exit(EXIT_FAILURE);
+
+    while ((read = getline(&line, &len, fp)) != -1) {
+        //printf("Retrieved line of length %zu:\n", read);
+        //printf("%s", line);
+        parseFilterLine(line);
+
 
     }
 
@@ -836,21 +941,34 @@ void clean_up(){
     
 }
 
+
+
 int main(int argc, char *argv[])
 /* Process command line. */
 {
 
 
-
+gHeadNode=NULL;
 
 optionInit(&argc, argv, options);
 
 
-clRangeListFile = optionVal("filter", clRangeListFile);
-if(clRangeListFile){
-    readChromRangeFile(clRangeListFile);
+clRangeListFile = optionVal("ranges", clRangeListFile);
+clFilterFile = optionVal("filters", clFilterFile);
+maxItems = optionInt("maxItems", maxItems);
+udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
+gWriteQueryToName = optionExists("addQueryRangeToName");
+header = optionExists("header");
+gPrintComment = optionExists("printComments");
+
+if(clRangeListFile || clFilterFile){
+
+    if(clRangeListFile)
+        readChromRangeFile(clRangeListFile);
+    if(clFilterFile)
+        readChromRangeFile(clFilterFile);
     //printRangeList();
-    convertFiltersToArray();
+    
 }
 
 if(gBestNum>0){
@@ -872,21 +990,27 @@ if(gNumSortCriteria>0){
 }
 
 
-maxItems = optionInt("maxItems", maxItems);
-udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
-gWriteQueryToName = optionExists("addQueryRangeToName");
 
-transferSortCriteriaToArray();
+//transferSortCriteriaToArray();
 //printSortCriteria();
 
 //printf("NUMBEST=%d\n",gBestNum);
 
+if(argc>2){
+    for(int i=2;i<argc;i++){
+        replaceCharInString(argv[i],'/','\t');
+        parseFilterLine(argv[i]);
+    }
+}
 
 if(gInBB){
+    if(gPrintComment) printf("#inputbb=%s\n",gInBB);
     bigBedToBed(gInBB);
+    
 }else{
-    if (argc != 2)
+    if (argc < 2)
         usage();
+    if(gPrintComment) printf("#inputbb=%s\n",argv[1]);
     bigBedToBed(argv[1]);
 }
 
