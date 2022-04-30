@@ -44,8 +44,9 @@ void usage()
 {
 errAbort(
   "bigBedToBedPlus v1.3 - Convert from bigBed to ascii bed format and print to STDOUT with regions and filters provided in rangeListFile.\n"
+  "For more detailed description, go to https://github.com/albertwcheng/JACKIE2/blob/master/bigBedToBedPlus/"
   "usage:\n"
-  "   bigBedToBedPlus [options] input.bb [inlineFiltersOrSelections(/separated) ... ]\n"
+  "   bigBedToBedPlus [options] input.bb [inlineRegionsOrFilters(/separated) ... ]\n"
   "options:\n"
   "   -addQueryRangeToName - if set, add query name to name field of output\n"
   "   -maxItems=N - if set, restrict output to first N items\n"
