@@ -48,6 +48,7 @@ uint    percentGC;  "Percent GC of spacer sequence"
 uint    longestTandemT; "Longest run of T"
 )
 ```
+<!--
 or in a table
 
 Column# | Name | Description
@@ -70,11 +71,8 @@ Column# | Name | Description
 16 | spacerSeq | Spacer sequence of gRNA
 17 | percentGC | Percent GC of spacer sequence
 18 | longestTandemT | Longest run of T
+--!>
 
-An example item (a 1 copy gRNA with 2 1-mismatch and 1 3-mismatch off-targets)
-```
-chr1	54472	54492	8124609316492752457.1/CCCGGTAGAGTATTTGAAGA	1	-	54472	54492	0,0,0	1	2	0	1	3	1/2/0/1	CCCGGTAGAGTATTTGAAGA	45	3
-```
 
 You can find out the columns present in the bigbed file by running ``` bigBedToBedPlus -printAutoSqlCols input.bb ```
 which gives something like:
@@ -99,6 +97,12 @@ Column 16	spacerSeq
 Column 17	percentGC
 Column 18	longestTandemT
 ```
+
+An example item (a 1 copy gRNA with 2 1-mismatch and 1 3-mismatch off-targets)
+```
+chr1	54472	54492	8124609316492752457.1/CCCGGTAGAGTATTTGAAGA	1	-	54472	54492	0,0,0	1	2	0	1	3	1/2/0/1	CCCGGTAGAGTATTTGAAGA	45	3
+```
+
 
 
 The genomic regions of interest are supplied in a txt file and supplied as an ```-regions=regionsOfInterest.txt``` option to the program
