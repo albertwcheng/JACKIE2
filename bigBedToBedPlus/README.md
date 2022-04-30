@@ -48,30 +48,7 @@ uint    percentGC;  "Percent GC of spacer sequence"
 uint    longestTandemT; "Longest run of T"
 )
 ```
-<!--
-or in a table
 
-Column# | Name | Description
---- | --- | --- 
-1 | chrom | Reference sequence chromosome or scaffold
-2 | chromStart | Start position of feature on chromosome
-3 | chromEnd | End position of feature on chromosome
-4 | name | Name of gene
-5 | score | Score
-6 | strand | + or - for strand
-7 | thickStart | Coding region start
-8 | thickEnd | Coding region end
-9 | reserved | Color
-10 | n0mismatches | Number of exact matched sites
-11 | n1mismatches | Number of 1-mismatch sites
-12 | n2mismatches | Number of 2-mismatch sites
-13 | n3mismatches | Number of 3-mismatch sites
-14 | totalOffSites | Total number of 1,2,3-mismatch sites
-15 | offSiteCounts | String representation of offsite counts separated by slashes
-16 | spacerSeq | Spacer sequence of gRNA
-17 | percentGC | Percent GC of spacer sequence
-18 | longestTandemT | Longest run of T
---!>
 
 
 You can find out the columns present in the bigbed file by running ``` bigBedToBedPlus -printAutoSqlCols input.bb ```
