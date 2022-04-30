@@ -5,7 +5,17 @@ bigBedToBedPlus is a modified version of Kent's bigBedToBed which allows the ext
 Binaries are available for Mac Mac_Binary_x86_64 folder and Unix (x86_64) under Unix_Binary_x86_64
 To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
 
-Usage: bedBedToBedPlus [-filters=filterFile] [-ranges=regions] input.bb 
+```
+Usage: bedBedToBedPlus [options] input.bb [inlineRegionsOrFilters(/separated) ... ]
+options:
+   -addQueryRangeToName - if set, add query name to name field of output
+   -maxItems=N - if set, restrict output to first N items
+   -udcDir=/dir/to/cache - place to put cache for remote bigBed/bigWigs
+   -regions=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera
+   -filters=filename - same effect as regions
+   -printAutoSqlCols - print out autoSql columns only
+```
+
 For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus input.bb  > output.bed )
 
 
@@ -60,6 +70,13 @@ Column# | Name | Description
 16 | spacerSeq | Spacer sequence of gRNA
 17 | percentGC | Percent GC of spacer sequence
 18 | longestTandemT | Longest run of T
+
+You can find out the columns present in the bigbed file by running
+
+```
+bigBedToBedPlus -printAutoSqlCols input.bb
+```
+
 
 An example item (a 1 copy gRNA with 2 1-mismatch and 1 3-mismatch off-targets)
 ```
