@@ -97,6 +97,9 @@ chr2	1	1000000
 ```
 
 ## Filtering
+
+The ```-filters``` and ```-regions``` flags are interpretted identically and their contents can be interchanged. Providing two option flags allow users to directly use bed file for regions and apply a filters file separately.
+
 The filter.txt can contain ```$column_number``` tab ```min``` tab ```max``` to filter items with column integer values within min and max inclusive. tab delimited fields 4+ are ignored and can be used for commenting, ```#COMMENTS```. 
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
