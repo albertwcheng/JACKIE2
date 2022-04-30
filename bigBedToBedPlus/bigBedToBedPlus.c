@@ -44,7 +44,7 @@ void usage()
 {
 errAbort(
   "bigBedToBedPlus v1.3 - Convert from bigBed to ascii bed format and print to STDOUT with regions and filters provided in rangeListFile.\n"
-  "For more detailed description, go to https://github.com/albertwcheng/JACKIE2/blob/master/bigBedToBedPlus/"
+  "For more detailed description, go to https://github.com/albertwcheng/JACKIE2/blob/master/bigBedToBedPlus/\n"
   "usage:\n"
   "   bigBedToBedPlus [options] input.bb [inlineRegionsOrFilters(/separated) ... ]\n"
   "options:\n"
