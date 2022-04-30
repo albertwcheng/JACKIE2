@@ -4,7 +4,7 @@
  * See kent/LICENSE or http://genome.ucsc.edu/license/ for licensing information. */
 
 /* 
-*  2022/4/27: Albert Cheng, PhD, ASU added new options to bigBedToBed to make it bigBedToBed Plus, supporting a list of chrom start end ranges as well as filtering criteria for columns; also output is changed to STDOUT
+*  2022/4: Albert Cheng, PhD, ASU added new options to bigBedToBed to make it bigBedToBed Plus, supporting a list of chrom start end ranges as well as filtering criteria for columns; also output is changed to STDOUT
 */
 
 #include "common.h"
@@ -43,16 +43,16 @@ void usage()
 /* Explain usage and exit. */
 {
 errAbort(
-  "bigBedToBedPlus v1.2 - Convert from bigBed to ascii bed format and print to STDOUT with ranges and filters provided in rangeListFile.\n"
+  "bigBedToBedPlus v1.2 - Convert from bigBed to ascii bed format and print to STDOUT with regions and filters provided in rangeListFile.\n"
   "usage:\n"
   "   bigBedToBedPlus input.bb [inlineFiltersOrSelections(/separated) ... ]\n"
   "options:\n"
   "   -addQueryRangeToName - if set, add query name to name field of output\n"
   "   -maxItems=N - if set, restrict output to first N items\n"
   "   -udcDir=/dir/to/cache - place to put cache for remote bigBed/bigWigs\n"
-  "   -ranges=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera\n" 
-  "   -filters=filename - same effect as ranges\n"
-  "   The range file contains each row tab delimited chr start end for chrom ranges or $col min max for min-max inclusive filtering for col\n"
+  "   -regions=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera\n" 
+  "   -filters=filename - same effect as regions\n"
+  "   The range file contains each row tab delimited chr start end for chrom regions or $col min max for min-max inclusive filtering for col\n"
   "   For example extract items within chr1:1-50000 or chr2:200-100000 with column 17 in range from 40 to 60 inclusive and column 14 in range from 0 to 3 inclusive:\n"
   "   run bigBedToBedPlus -filters=filter.txt input.bb\n"
   "   filter.txt:\n"
@@ -429,7 +429,7 @@ void updateBests(LineData* thisData){
 
 static struct optionSpec options[] = {
    {"filters", OPTION_STRING},
-   {"ranges", OPTION_STRING},
+   {"regions", OPTION_STRING},
    {"maxItems", OPTION_INT},
    {"udcDir", OPTION_STRING},
    {"addQueryRangeToName", OPTION_BOOLEAN},
@@ -953,7 +953,7 @@ gHeadNode=NULL;
 optionInit(&argc, argv, options);
 
 
-clRangeListFile = optionVal("ranges", clRangeListFile);
+clRangeListFile = optionVal("regions", clRangeListFile);
 clFilterFile = optionVal("filters", clFilterFile);
 maxItems = optionInt("maxItems", maxItems);
 udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
