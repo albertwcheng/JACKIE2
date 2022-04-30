@@ -43,43 +43,47 @@ void usage()
 /* Explain usage and exit. */
 {
 errAbort(
-  "bigBedToBedPlus v1.2 - Convert from bigBed to ascii bed format and print to STDOUT with regions and filters provided in rangeListFile.\n"
+  "bigBedToBedPlus v1.3 - Convert from bigBed to ascii bed format and print to STDOUT with regions and filters provided in rangeListFile.\n"
   "usage:\n"
-  "   bigBedToBedPlus input.bb [inlineFiltersOrSelections(/separated) ... ]\n"
+  "   bigBedToBedPlus [options] input.bb [inlineFiltersOrSelections(/separated) ... ]\n"
   "options:\n"
   "   -addQueryRangeToName - if set, add query name to name field of output\n"
   "   -maxItems=N - if set, restrict output to first N items\n"
   "   -udcDir=/dir/to/cache - place to put cache for remote bigBed/bigWigs\n"
   "   -regions=filename - if set restrict output to given list of chr start end in the specific file and other filter or sorting selection critiera\n" 
   "   -filters=filename - same effect as regions\n"
-  "   The range file contains each row tab delimited chr start end for chrom regions or $col min max for min-max inclusive filtering for col\n"
-  "   For example extract items within chr1:1-50000 or chr2:200-100000 with column 17 in range from 40 to 60 inclusive and column 14 in range from 0 to 3 inclusive:\n"
-  "   run bigBedToBedPlus -filters=filter.txt input.bb\n"
-  "   filter.txt:\n"
-  "   chr1\t1\t50000\n"
-  "   chr2\t200\t100000\n"
-  "   $17\t40\t60\n"
-  "   $14\t0\t3\n"
-  "   include input.bb in filter.txt by adding a line preceded by colon,i.e., :input.bb, run bigBedToBedPlus -filter=filter.txt\n"
-  "   filter.txt:\n"
-  "   :input.bb\n"
+  "   -printAutoSqlCols - print out autoSql columns only\n"
+  "   The region file contains each row tab delimited chr start end for chrom regions, can be a bed file\n"
+  "   Example regions.txt:"
   "   chr1\t1\t50000\n"
   "   chr1\t1\t50000\n"
   "   chr2\t200\t100000\n"
-  "   $17\t40\t60\n"
-  "   $14\t0\t3\n"
-  "   include !MIN min, !MAX max and !BEST numItems to select the best numItems items sorting with ascending(min) or descending(max) on the specificed columns in the order as they appear in the filter.txt.\n"
+  "   ---------\n"
+  "   The filter file contains each row tab delimited instructions for filtering items or sorting and selecting best N items\n"
+  "   $col min max to filter items with column values within min max inclusive\n"
+  "   For example, column 17 in range from 40 to 60 inclusive and column 14 in range from 0 to 3 inclusive:\n"
+  "   Combination of !MIN col, !MAX col and !BEST numItems to select the best numItems items sorting with ascending(min) or descending(max) on the specificed columns in the order as they appear in the filter.txt.\n"
   "   For example, 4 best items sorting first ascending with col 14, then descending with col 17\n"
+  "   Example filters.txt:"
   "   filter.txt:\n"
-  "   :input.bb\n"
-  "   chr1\t1\t50000\n"
-  "   chr1\t1\t50000\n"
-  "   chr2\t200\t100000\n"
   "   $17\t40\t60\n"
   "   $14\t0\t3\n"
   "   !BEST\t4\n"
   "   !MIN\t14\n"
-  "   !MAX\t17\n"  
+  "   !MAX\t17\n"
+  "   ---------\n"
+  "   -filters and -regions options are interpreted identically, so contents of filters and regions can be placed in either files\n"
+  "   you can include :input.bb in filters or regions file to provide input.bb in the file instead of in the command line\n"
+  "   you can provide inline regions and filters on the command line replacing tab with /, e.g., chr1/1/5000 or $17/40/60\n"
+  "   you can use field name deifned in the autoSql of the bigBed file as column name in the filters. For example:\n"
+  "   filter.txt:\n"
+  "   $percentGC\t40\t60\n"
+  "   $totalOffSites\t0\t3\n"
+  "   !BEST\t4\n"
+  "   !MIN\ttotalOffSites\n"
+  "   !MAX\tpercentGC\n"
+  "   ---------\n"
+
   );
 }
 
@@ -180,6 +184,7 @@ void freeFilters(){
 #define SMALLEST_INT -10000
 
 
+int gPrintAutoSqlColumnsOnly=0;
 
 void freeFilterArrays(){
     if(gFilterMins)
@@ -435,6 +440,7 @@ static struct optionSpec options[] = {
    {"addQueryRangeToName", OPTION_BOOLEAN},
    {"header", OPTION_BOOLEAN},
    {"printComments", OPTION_BOOLEAN},
+   {"printAutoSqlCols",OPTION_BOOLEAN},
    {NULL, 0},
 };
 
@@ -459,6 +465,24 @@ strcpy(sep,"#");
 free(sep);
 
 }
+
+void printAutoSqlColumns(struct bbiFile *bbi)
+/* output a header from the autoSql in the file */
+{
+
+    int col=1;
+
+    for (struct asColumn *asCol = gAsObj->columnList; asCol != NULL; asCol = asCol->next)
+    {
+        printf("Column %d\t%s\n",col,asCol->name);
+        col++;
+        
+    }
+   
+
+
+}
+
 
 int colStringToColNum1(char *colString){
     int col1=1;
@@ -558,14 +582,26 @@ void repairStringAfterStrtok(char *str,char delimiter,int length){
     }
 }
 
+void clean_up(){
+    freeSortCriteria();
+    freeRangeList();
+    freeFilterArrays();
 
+    if(gBests){
+        free(gBests);
+    }
+
+    if(gInBB)
+        free(gInBB);
+    
+}
 
 void bigBedToBed(char *inFile)
 /* bigBedToBed - Convert from bigBed to ascii bed format.. */
 {
 struct bbiFile *bbi = bigBedFileOpen(inFile);
 
-if (header || gNeedAsObject){
+if (header || gNeedAsObject || gPrintAutoSqlColumnsOnly){
 
     gAsText= bigBedAutoSqlText(bbi);
     if (gAsText == NULL)
@@ -575,6 +611,14 @@ if (header || gNeedAsObject){
 
 
 }
+
+if(gPrintAutoSqlColumnsOnly){
+    printAutoSqlColumns(bbi);
+    clean_up();
+    return;
+    //free
+}
+
 
 //remember header before this.
 convertFiltersToArray();
@@ -927,19 +971,7 @@ void readChromRangeFile(const char*filename){
 
 }
 
-void clean_up(){
-    freeSortCriteria();
-    freeRangeList();
-    freeFilterArrays();
 
-    if(gBests){
-        free(gBests);
-    }
-
-    if(gInBB)
-        free(gInBB);
-    
-}
 
 
 
@@ -960,6 +992,7 @@ udcSetDefaultDir(optionVal("udcDir", udcDefaultDir()));
 gWriteQueryToName = optionExists("addQueryRangeToName");
 header = optionExists("header");
 gPrintComment = optionExists("printComments");
+gPrintAutoSqlColumnsOnly = optionExists("printAutoSqlCols");
 
 if(clRangeListFile || clFilterFile){
 
