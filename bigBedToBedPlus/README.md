@@ -100,7 +100,7 @@ chr2	1	1000000
 
 The ```-filters``` and ```-regions``` flags are interpretted identically and their contents can be interchanged. Providing two option flags allow users to directly use bed file for regions and apply a filters file separately.
 
-The filter.txt can contain ```$column_number``` tab ```min``` tab ```max``` to filter items with column integer values within min and max inclusive. tab delimited fields 4+ are ignored and can be used for commenting, ```#COMMENTS```. 
+The fileters file can contain ```$column_number``` tab ```min``` tab ```max``` to filter items with column integer values within min and max inclusive. tab delimited fields 4+ are ignored and can be used for commenting, ```#COMMENTS```. 
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
@@ -169,6 +169,15 @@ $longestTandemT	0	5
 !MAX	percentGC
 ```
 
+## Supplying genomic regions and filters inline on command line
+
+You can supply genomic regions and filters on command line as arguments after the input.bb file using the format above for genomic regions and filters but converting tab to / e.g., (Note the use of single quote to avoid the Shell from interpreting the special symbols.
+
+```
+bigBedToBedPlus https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb chr1/1/500000 chr2/1/1000000 '$percentGC/40/60' '$totalOffSites/0/4' '$longestTandemT/0/5' '!BEST/4' '!MIN/totalOffSites' '!MAX/percentGC'
+```
+
+
 ## Other options
 Use option ```-addQueryRangeToName``` to add query range to name so that the items printed is associated with the particular query genomic region
 ```
@@ -181,7 +190,7 @@ chr2	46239	46259	chr2:1-1000000/8528243356817207939.1/GATCGCGCCAAGTATGTGCG	1	-	4
 chr2	46241	46261	chr2:1-1000000/8546153689510617305.1/CGGATCGCGCCAAGTATGTG	1	-	46241	46261	0,0,0	1	0	0	0	0	1/0/0/0	CGGATCGCGCCAAGTATGTG	60	1
 chr2	72890	72910	chr2:1-1000000/8539156629285802011.1/GGAACCAATACGGGGCCATG	1	-	72890	72910	0,0,0	1	0	0	0	0	1/0/0/0	GGAACCAATACGGGGCCATG	60	1
 ```
-  
+
   
 ## Building bigBedToBedPlus
 Download kent code: https://github.com/ucscGenomeBrowser/kent and follow build instructions
