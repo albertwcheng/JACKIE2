@@ -71,34 +71,50 @@ Column# | Name | Description
 17 | percentGC | Percent GC of spacer sequence
 18 | longestTandemT | Longest run of T
 
-You can find out the columns present in the bigbed file by running
-
-```
-bigBedToBedPlus -printAutoSqlCols input.bb
-```
-
-
 An example item (a 1 copy gRNA with 2 1-mismatch and 1 3-mismatch off-targets)
 ```
 chr1	54472	54492	8124609316492752457.1/CCCGGTAGAGTATTTGAAGA	1	-	54472	54492	0,0,0	1	2	0	1	3	1/2/0/1	CCCGGTAGAGTATTTGAAGA	45	3
 ```
 
-The genomic regions of interest are supplied in a txt file and supplied as an ```-filters=filter.txt``` option to the program
-The filter.txt file should contains each line ```chr```tab```start```tab```end```, e.g.,
+You can find out the columns present in the bigbed file by running ``` bigBedToBedPlus -printAutoSqlCols input.bb ```
+which gives something like:
+
+```
+Column 1	chrom
+Column 2	chromStart
+Column 3	chromEnd
+Column 4	name
+Column 5	score
+Column 6	strand
+Column 7	thickStart
+Column 8	thickEnd
+Column 9	reserved
+Column 10	n0mismatches
+Column 11	n1mismatches
+Column 12	n2mismatches
+Column 13	n3mismatches
+Column 14	totalOffSites
+Column 15	offSiteCounts
+Column 16	spacerSeq
+Column 17	percentGC
+Column 18	longestTandemT
+```
+
+
+The genomic regions of interest are supplied in a txt file and supplied as an ```-regions=regionsOfInterest.txt``` option to the program
+The regionsOfInterest.txt file should contains each line ```chr```tab```start```tab```end```, e.g.,
 ```
 chr1	1	500000
 chr2	1	1000000
 ```
-Example: To run with filter file:
-```
-bedBedToBedPlus -filters=filter.txt https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb 
-```
-The filter.txt file can also contain the input.bb filename by adding :input.bb, and in command line only run with ```bedBedToBedPlus -filters=filter.txt```
+
+The region file can also contain the input.bb filename by adding :input.bb, for example
 ```
 :https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
 chr1	1	500000
 chr2	1	1000000
 ```
+
 ## Filtering
 The filter.txt can contain ```$column_number``` tab ```min``` tab ```max``` to filter items with column integer values within min and max inclusive. tab delimited fields 4+ are ignored and can be used for commenting, ```#COMMENTS```. 
 ```
@@ -154,10 +170,23 @@ chr2	46241	46261	8546153689510617305.1/CGGATCGCGCCAAGTATGTG	1	-	46241	46261	0,0,
 chr2	72890	72910	8539156629285802011.1/GGAACCAATACGGGGCCATG	1	-	72890	72910	0,0,0	1	0	0	0	0	1/0/0/0	GGAACCAATACGGGGCCATG	60	1
 
 ```
+
+You can use column name instead of column numbers for filters, for example:
+
+```
+:https://albertcheng.info/jackie_downloads/hg38PAM.1copy.offSiteCounts.wGCT.bb
+chr1	1	500000
+chr2	1	1000000
+$percentGC	40	60
+$totalOffSites	0	4
+$longestTandemT	0	5
+!BEST	4
+!MIN	totalOffSites
+!MAX	percentGC
+```
+
 ## Other options
-Add query range to name so that the items printed is associated with the particular query genomic region
-```bigBedToBedPlus -filter=filter.txt -addQueryRangeToName```
-output
+Use option ```-addQueryRangeToName``` to add query range to name so that the items printed is associated with the particular query genomic region
 ```
 chr1	10795	10815	chr1:1-500000/8415868856704206347.1/GCAGACACATGCTAGCGCGT	1	+	10795	10815	0,0,0	1	0	0	0	0	1/0/0/0	GCAGACACATGCTAGCGCGT	60	1
 chr1	263706	263726	chr1:1-500000/8359534363805562568.1/ACGGGTGTTTTGGATAGAAT	1	-	263706	263726	0,0,0	1	0	0	2	2	1/0/0/2	ACGGGTGTTTTGGATAGAAT	40	4
