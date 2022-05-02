@@ -289,7 +289,6 @@ Column 6 | +
 Column 7 | 1/2/21/26
 
 ```
-
 SevenColumnBedFile= #fill input 7-column bed file
 EighteenColumnBedFile= #fill output 18-column bed file
 
