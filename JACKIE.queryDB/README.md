@@ -5,8 +5,8 @@ JACKIE.queryDB is a modified version of Kent's bigBedToBed which allows the extr
 Binaries are available for Mac M1 Chip under the Mac_AppleM1_binary_Arm64 folder and Unix (x86_64) under Unix_Binary_x86_64
 To build from source, skip to [Building JACKIE.queryDB](#building-JACKIE.queryDB)
 
-Usage: bedBedToBedPlus [-filter <filterFile>] input.bb 
-For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus [-filter <filterFile>] input.bb  > output.bed )
+Usage: JACKIE.queryDB [-filter <filterFile>] input.bb 
+For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., JACKIE.queryDB [-filter <filterFile>] input.bb  > output.bed )
 
 
 # Basic operations with examples
