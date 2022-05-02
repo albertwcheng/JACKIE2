@@ -275,6 +275,34 @@ uint    longestTandemT; "Longest run of T"
 )
 
 ```
+We need to duplicate some fields (thickStart, thickEnd), generate the nXmismatches, totalOffsites, percentGC longestTandemT fields etc
+The bed file we have now is structured.
+
+Column | Example field
+--- | ---
+Column 1 | chr1
+Column 2 | 10607
+Column 3 | 10627
+Column 4 | 8073627651782476488.1/ACGCAACTCCGCCGTTGCAA
+Column 5 | 1
+Column 6 | +
+Column 7 | 1/2/21/26
+
+```
+
+SevenColumnBedFile= #fill input 7-column bed file
+EighteenColumnBedFile= #fill output 18-column bed file
+
+#convert 7-col to 18-col
+awk -v FS="\t" -v OFS="\t" awk -v FS="\t" -v OFS="\t" $SevenColumnBedFile ' {split($4,a,"/"); seq=a[2]; offString=$(7); split(offString,m,"/"); $(7)=$(2); $(8)=$(3); $(9)="0,0,0"; $(10)=m[1]; $(11)=m[2]; $(12)=m[3]; $(13)=m[4]; $(14)=m[2]+m[3]+m[4]; $(15)=offString; $(16)=seq; TT=0; GC=0; maxT=0; for(i=1;i<=length(seq);i++){thisBase=substr(seq,i,1); if(thisBase=="T"){TT++;if(TT>maxT){maxT=TT;}}else{TT=0;} if(thisBase=="G" || thisBase=="C"){GC++;}}$(17)=GC/length(seq)*100; $(18)=maxT; print;}' > $EighteenColumnBedFile
+
+#sort by coordinates in order for bedToBigBed to work
+sort -k1,1 -k2,2n $EighteenColumnBedFile > ${EighteenColumnBedFile/.bed/}.sorted.bed
+
+#convert to bigBed
+bedToBigBed -as=hg38PAM.1copy.offSiteCounts.as -type=bed9+9 ${EighteenColumnBedFile/.bed/}.sorted.bed hg38.chrom.sizes ${EighteenColumnBedFile/.bed/}.sorted.bb
+```
+
 and for 2+ copies clusters
 ```
 table hg38TwoPlusCopyPAMOffSiteCounts
