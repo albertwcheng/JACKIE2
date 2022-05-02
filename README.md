@@ -23,6 +23,23 @@ M1 Mac | [Binaries/arm64-apple-darwin20](Binaries/arm64-apple-darwin20)
 Intel Mac x86_64 | [Binaries/x86_64-Mac](Binaries/x86_64-Mac)
 Linux x86_64 | [Binaries/x86_64-linux](Binaries/x86_64-linux)
 
+Installation of binaries
+with root privilege
+
+```
+cp Binaries/arm64-apple-darwin20/* /usr/bin/ #for M1 Mac, change according to above table
+```
+
+without root privilege
+```
+mkdir ~/bin/
+cp Binaries/arm64-apple-darwin20/* ~/bin/ #for M1 Mac, change according to above table
+```
+Add JACKIE to path. In your ~/.bashrc file, add a line:
+```
+export PATH=~/bin/:${PATH}
+```
+
 ## Installation
 
 With root privilege:
