@@ -14,7 +14,7 @@ JACKIE (Jackie and Albert's CRISPR K-mer Instances Enumerator) [yes, a recursive
 Precomputed CRISPR sites (JACKIEdb) available for hg38 and mm10, available at http://cheng.bio/JACKIE
 Users interested in strating from precomputed sites to further filter or identify sites within regions, etc, can jump to the [later sections](README.md#filtering-examples)
 
-## Binaries
+## Install binaries
 
 Binaries available for:
 Architecture | Folder
@@ -40,7 +40,7 @@ Add JACKIE to path. In your ~/.bashrc file, add a line:
 export PATH=~/bin/:${PATH}
 ```
 
-## Installation
+## Build from source
 
 With root privilege:
 
@@ -57,6 +57,7 @@ Install to specific path:
 make
 make install
 ```
+Build JACKIE.queryDB, see [JACKIE.queryDB](JACKIE.queryDB)
 
 Add JACKIE to path. In your ~/.bashrc file, add a line:
 ```
