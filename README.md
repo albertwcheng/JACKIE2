@@ -247,6 +247,65 @@ sequenceField="4,/,2" #fourth column => split by "/" => second element"
 JACKIE.countOffSites ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].$PAM.${numBitsPerSeq}bits.seqbits.gz $kmer $mm $inputBed $sequenceField > $outputBed
 ```
 
+Make bigBed-formatted JACKIEdb according to the following AutoSql structures
+For one-copy sites
+
+```
+table OneCopyPAMOffSiteCounts
+"One-copy CRISPR SpCas9 NGG sites and off-target counts up to 3 mismatches"
+(
+string  chrom;		"Reference sequence chromosome or scaffold"
+uint    chromStart;	"Start position of feature on chromosome"
+uint    chromEnd;	"End position of feature on chromosome"
+string  name;		"Name of gene"
+uint    score;		"Score"
+char[1] strand;		"+ or - for strand"
+uint    thickStart;	"Coding region start"
+uint    thickEnd;	"Coding region end"
+uint  	reserved;	"Color"
+uint    n0mismatches;  "Number of exact matched sites"
+uint    n1mismatches;  "Number of 1-mismatch sites"
+uint    n2mismatches;  "Number of 2-mismatch sites"
+uint    n3mismatches;  "Number of 3-mismatch sites"
+uint    totalOffSites; "Total number of 1,2,3-mismatch sites"
+string  offSiteCounts; "String representation of offsite counts separated by slashes"
+string  spacerSeq;  "Spacer sequence of gRNA"
+uint    percentGC;  "Percent GC of spacer sequence"
+uint    longestTandemT; "Longest run of T"
+)
+
+```
+and for 2+ copies clusters
+```
+table hg38TwoPlusCopyPAMOffSiteCounts
+"One-copy CRISPR SpCas9 NGG sites and off-target counts up to 3 mismatches"
+(
+string  chrom;		"Reference sequence chromosome or scaffold"
+uint    chromStart;	"Start position of feature on chromosome"
+uint    chromEnd;	"End position of feature on chromosome"
+string  name;		"Name of gene"
+uint    score;		"Score"
+char[1] strand;		"+ or - for strand"
+uint    thickStart;	"Coding region start"
+uint    thickEnd;	"Coding region end"
+uint  	reserved;	"Color"
+int blockCount; "Number of blocks"
+int[blockCount] blockSizes; "Comma separated list of block sizes"
+int[blockCount] chromStarts; "Start positions relative to chromStart"
+uint    clusterSize;    "Size of gRNA cluster"
+uint    n0mismatches;  "Number of exact matched sites"
+uint    n1mismatches;  "Number of 1-mismatch sites"
+uint    n2mismatches;  "Number of 2-mismatch sites"
+uint    n3mismatches;  "Number of 3-mismatch sites"
+uint    totalOffSites; "Total number of 1,2,3-mismatch sites"
+string  offSiteCounts; "String representation of offsite counts separated by slashes"
+string  spacerSeq;  "Spacer sequence of gRNA"
+uint    percentGC;  "Percent GC of spacer sequence"
+uint    longestTandemT; "Longest run of T"
+)
+
+```
+
 ## For filtering, selection of best N gRNAs within specified genomic regions with JACKIE.queryDB, see [JACKIE.queryDB](JACKIE.queryDB)
 
 
