@@ -1,9 +1,9 @@
-# bigBedToBedPlus
+# JACKIE.queryDB (bigBedToBedPlus)
 
-bigBedToBedPlus is a modified version of Kent's bigBedToBed which allows the extraction of multiple regions simultaneously, as well as allowing for filtering of integer-based fields of custom bigBed format. Also allows for the selection of a specified number of best bed items according to a series of column sorting criteria.
+JACKIE.queryDB is a modified version of Kent's bigBedToBed which allows the extraction of multiple regions simultaneously, as well as allowing for filtering of integer-based fields of custom bigBed format. Also allows for the selection of a specified number of best bed items according to a series of column sorting criteria.
 
 Binaries are available for Mac M1 Chip under the Mac_AppleM1_binary_Arm64 folder and Unix (x86_64) under Unix_Binary_x86_64
-To build from source, skip to [Building bigBedToBedPlus](#building-bigBedToBedPlus)
+To build from source, skip to [Building JACKIE.queryDB](#building-JACKIE.queryDB)
 
 Usage: bedBedToBedPlus [-filter <filterFile>] input.bb 
 For convenient piping, I have decided to change output to STDOUT instead of writing to a file in bigBedToBed. To write to file, use redirection (i.e., bedBedToBedPlus [-filter <filterFile>] input.bb  > output.bed )
@@ -138,8 +138,8 @@ chr2	72890	72910	8539156629285802011.1/GGAACCAATACGGGGCCATG	1	-	72890	72910	0,0,
 
 ```
 
-# Building bigBedToBedPlus
+# Building JACKIE.queryDB
 Download kent code: https://github.com/ucscGenomeBrowser/kent and follow build instructions
 
-To build this, place this folder under kent source tree under folder kent/src/utils/ (i.e., make this folder kent/src/utils/bigBedToBedPlus) , then run ```make``` on kent/src level first, then go into bigBedToBedPlus and run ```make```.
+To build this, place this folder under kent source tree under folder kent/src/utils/ (i.e., make this folder kent/src/utils/JACKIE.queryDB) , then run ```make``` on kent/src level first, then go into JACKIE.queryDB and run ```make```.
 
