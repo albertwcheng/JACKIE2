@@ -218,8 +218,6 @@ sequenceField="4,/,2" #fourth column => split by "/" => second element"
 
 
 JACKIE.countOffSites ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].$PAM.${numBitsPerSeq}bits.seqbits.gz $kmer $mm $inputBed $sequenceField > $outputBed
-
-
 ```
 
 
