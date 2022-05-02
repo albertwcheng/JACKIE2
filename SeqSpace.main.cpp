@@ -97,7 +97,7 @@ int printUsageAndExit_reader_pmulti(string programName)
 
 int printUsageAndExit_countOffSites(string programName)
 {
-    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile [col or col,sep,element]"<<endl;
+    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile [[col or col,sep,element] printMisPosProfile]"<<endl;
     return 1;
 }
 
@@ -138,6 +138,13 @@ inline char IdxToNt(uint64_t idx)
             throw std::overflow_error(string("undefined idx ")+StringUtil::str(int(idx)));
     }
 }
+
+class SeqIdxCountPair{
+    public:
+    uint64_t seqIdx;
+    uint64_t count;
+    SeqIdxCountPair(uint64_t _seqIdx,uint64_t _count):seqIdx(_seqIdx),count(_count){}
+};
 
 class SeqSpace
 {
@@ -2175,25 +2182,64 @@ class OffTargetEnumeratorOffSiteCounts:public StepwiseSeqSpaceWithMotifsMultiBit
         }
 
 
+        static string getMutString(uint64_t oriSeqIdx,uint64_t mutSeqIdx,int length)
+        {
+            string seq;
+            
+            
+
+            for(int i=0;i<length;i++){
+                char oriNuc=IdxToNt(oriSeqIdx & 3);
+                char mutNuc=IdxToNt(mutSeqIdx & 3);
+                if(oriNuc==mutNuc){
+                    seq=mutNuc+seq;
+                }
+                else{
+                    switch(mutNuc){
+                        case 'A':
+                        seq="a"+seq;
+                        break;
+                        case 'C':
+                        seq="c"+seq;
+                        break;
+                        case 'G':
+                        seq="g"+seq;
+                        break;
+                        case 'T':
+                        seq="t"+seq;
+                        break;
+                    }
+                }
+                oriSeqIdx>>=2;
+                mutSeqIdx>>=2;
+            }
+            
+            return seq;
+            
+        }
+
+
         OffTargetEnumeratorOffSiteCounts(int _kmer, string _inBitStringFileName, int _mthres, string _prefix,bool useGzip=false):StepwiseSeqSpaceWithMotifsMultiBits(_kmer-_prefix.length(),_inBitStringFileName,_prefix),mthres(_mthres)
         {
             init_OffTargetEnumerator(_kmer,_mthres);
         }
 
 
-        inline void findOffTargetHits(const string &seq)
+        inline uint64_t findOffTargetHits(const string &seq,vector<SeqIdxCountPair>* offSiteMismatchPositionsList=NULL)
         {
             uint64_t seqIdx=this->seqToIndex(seq);
-            findOffTargetHits(seqIdx);
+            findOffTargetHits(seqIdx,seq,offSiteMismatchPositionsList);
+            return seqIdx;
         }
 
-        inline void findOffTargetHits(uint64_t seqIdx, vector<uint64_t> *__mthres=NULL)
+        inline void findOffTargetHits(uint64_t seqIdx, const string&oriSeq, vector<SeqIdxCountPair>* offSiteMismatchPositionsList, vector<uint64_t> *__mthres=NULL)
         {
             for(int i=0;i<=this->mthres;i++){
                 results[i]=0;
             }
 
             //cerr<<"A1:"<<Uint64ToString(seqIdx)<<endl;
+            int oriSeqLength=oriSeq.length();
 
             if(this->prefix_mask){
                 
@@ -2203,9 +2249,16 @@ class OffTargetEnumeratorOffSiteCounts:public StepwiseSeqSpaceWithMotifsMultiBit
 
                 if((seqIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK){ 
                     results[0]=this->getIndexCount(seqIdx&(this->prefix_mask->AND_MASK));  
+                    if(offSiteMismatchPositionsList){
+                        //*offSiteMismatchPositionsString+="/"+oriSeq+":"+StringUtil::str(results[0]);
+                        offSiteMismatchPositionsList->push_back(SeqIdxCountPair(seqIdx,results[0]));
+                    }
                 }
             }else{
-                results[0]=this->getIndexCount(seqIdx); 
+                results[0]=this->getIndexCount(seqIdx);
+                if(offSiteMismatchPositionsList){
+                    offSiteMismatchPositionsList->push_back(SeqIdxCountPair(seqIdx,results[0]));
+                }
             }
 
             for(vector<SeqBitMask>::iterator i=this->seqBitMasks.begin();i!=this->seqBitMasks.end();i++){
@@ -2231,7 +2284,14 @@ class OffTargetEnumeratorOffSiteCounts:public StepwiseSeqSpaceWithMotifsMultiBit
 
                 if(this->prefix_mask){
                     if(searchIdx!=seqIdx && ((searchIdx&(~this->prefix_mask->AND_MASK))==this->prefix_mask->OR_MASK)){
-                        results[i->nmismatches]+=this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK);
+                        
+                        uint64_t actualSearchIdx=searchIdx&this->prefix_mask->AND_MASK;
+                        uint64_t thisCount=this->getIndexCount(actualSearchIdx);
+                        results[i->nmismatches]+=thisCount;
+
+                        if(offSiteMismatchPositionsList && thisCount>0){
+                            offSiteMismatchPositionsList->push_back(SeqIdxCountPair(searchIdx,thisCount));
+                        }
                         
                         //debug
                         /*if(i->nmismatches==1 && this->getIndexCount(searchIdx&this->prefix_mask->AND_MASK)>0){
@@ -2249,7 +2309,12 @@ class OffTargetEnumeratorOffSiteCounts:public StepwiseSeqSpaceWithMotifsMultiBit
                 else{
                 
                     if(searchIdx!=seqIdx){
-                        results[i->nmismatches]+=this->getIndexCount(searchIdx);
+                        uint64_t thisCount=this->getIndexCount(searchIdx);
+                        results[i->nmismatches]+=thisCount;
+                        if(offSiteMismatchPositionsList && thisCount>0){
+                            offSiteMismatchPositionsList->push_back(SeqIdxCountPair(searchIdx,thisCount));
+                        }
+
                         if(__mthres){
                             if(results[i->nmismatches]>(*__mthres)[i->nmismatches]){
                                 break;
@@ -3535,7 +3600,7 @@ int main(int argc,char **argv)
 
 
 
-int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileName, int kmer, int mthres, string searchListFileName, string _prefix,int col0,string sep,int splitCom0,vector<OffProfileRecord>&offProfiles,int passType)
+int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileName, int kmer, int mthres, string searchListFileName, string _prefix,int col0,string sep,int splitCom0,vector<OffProfileRecord>&offProfiles,vector<vector<SeqIdxCountPair>* >*offProfilePositionListsList,int passType)
 {
     time_t start_time=time(NULL);
     time_t now_time=time(NULL);
@@ -3569,6 +3634,21 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
         getline(fin,lin);
         if(lin!=""){
 
+            vector<SeqIdxCountPair>* thisOffProfilePositionsList=NULL;
+
+            if(offProfilePositionListsList){
+                if(passType==COUNTSEQNEIGHBORS_FIRSTPASS){
+                    thisOffProfilePositionsList=new vector<SeqIdxCountPair>;
+                    offProfilePositionListsList->push_back(thisOffProfilePositionsList);
+                }
+                else{
+                    thisOffProfilePositionsList=(*offProfilePositionListsList)[recordNum];
+                }
+                
+            }
+
+            uint64_t seqIdx;
+
             if(col0>=0){
                 vector<string> fields;
                 StringUtil::split(lin,"\t",fields);
@@ -3576,12 +3656,12 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                 if(splitCom0>=0){
                     vector<string> splits;
                     StringUtil::split(col_value,sep,splits);
-                    enumerator.findOffTargetHits(splits[splitCom0]);
+                    seqIdx=enumerator.findOffTargetHits(splits[splitCom0],thisOffProfilePositionsList);
                 }else{
-                    enumerator.findOffTargetHits(col_value);
+                    seqIdx=enumerator.findOffTargetHits(col_value,thisOffProfilePositionsList);
                 }
             }else{
-                enumerator.findOffTargetHits(lin);
+                seqIdx=enumerator.findOffTargetHits(lin,thisOffProfilePositionsList);
             }
 
             switch(passType){
@@ -3593,7 +3673,24 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                 break;
                 case COUNTSEQNEIGHBORS_LASTPASS:
                     offProfiles[recordNum].increment(enumerator);
-                    cout<<lin<<"\t"<<offProfiles[recordNum].getResultString()<<endl; //enumerator.getResultString()<<endl;
+                    cout<<lin<<"\t"<<offProfiles[recordNum].getResultString();
+                    if(thisOffProfilePositionsList){
+                        cout<<"\t";
+                        bool first=true;
+                        for(vector<SeqIdxCountPair>::iterator i=thisOffProfilePositionsList->begin();i!=thisOffProfilePositionsList->end();i++){
+                            string mutString=OffTargetEnumeratorOffSiteCounts::getMutString(seqIdx,i->seqIdx,kmer);
+                            if(first){
+                                first=false;
+                                cout<<mutString<<":"<<StringUtil::str(int(i->count));
+                            }
+                            else{
+                                cout<<"/"<<mutString<<":"<<StringUtil::str(int(i->count));
+                            }
+
+                        }
+                        
+                    }
+                    cout<<endl; //enumerator.getResultString()<<endl;
                 break;
             }
 
@@ -3649,6 +3746,7 @@ int main(int argc,char **argv)
     string sep="";
     int splitCom0=-1;
 
+    vector<vector<SeqIdxCountPair>* >* offProfilePositionListsList=NULL;
 
     if(argc>=6){
         string argv_string(argv[5]);
@@ -3659,6 +3757,12 @@ int main(int argc,char **argv)
         {
             sep=v[1];
             splitCom0=StringUtil::atoi(v[2])-1;
+        }
+
+        if(argc>=7){
+            if(!strcmp(argv[6],"printMisPosProfile")){
+                offProfilePositionListsList=new vector<vector<SeqIdxCountPair>* >;
+            }
         }
 
     }
@@ -3688,11 +3792,24 @@ int main(int argc,char **argv)
         }
         string inBitStringFileName=inBitStringPrefix+nameSplits[i]+inBitStringSuffix;
         
-        countSeqNeighbors_prefixed_multi_offsitecounts_sub(inBitStringFileName, kmer, mthres, searchListFileName,  nameSplits[i], col0, sep, splitCom0, offProfiles, passType);
+        countSeqNeighbors_prefixed_multi_offsitecounts_sub(inBitStringFileName, kmer, mthres, searchListFileName,  nameSplits[i], col0, sep, splitCom0, offProfiles,offProfilePositionListsList, passType);
     }
+
+
+
 
     time_t now_time=time(NULL);
     cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    if(offProfilePositionListsList){
+
+        for(vector<vector<SeqIdxCountPair>* >::iterator i=offProfilePositionListsList->begin();i!=offProfilePositionListsList->end();i++){
+            delete (*i);
+        }
+
+        delete offProfilePositionListsList;
+        //vector<vector<SeqIdxCountPair>* >* offProfilePositionListsList=NULL;
+    }
 
     return 0;
     
