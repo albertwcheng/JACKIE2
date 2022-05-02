@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python2.7
 
 from sys import *
 from operator import itemgetter
@@ -25,7 +25,8 @@ def outMemLines(ostream,memLines,chroms,chromMin,chromMax,spanMax,exons):
 
     memLineFields=memLines[0].split("\t")
     outputFields=[memLineFields[0],chromMin,chromMax,memLineFields[3]+"/k="+str(len(exons))+"/s="+str(chromMax-chromMin),memLineFields[4],'+',chromMin,chromMax,"0,0,0",len(exons)]
-    
+    #print >> stderr,outputFields
+
     blockSizes=[]
     blockStarts=[]
     for exon in exons:
@@ -61,11 +62,13 @@ if __name__=='__main__':
         lin=lin.rstrip("\r\n")
         fields=lin.split("\t")
         thisItemName=fields[3]
-        thisChrom=fields[0]
+        thisChrom=fields[0].strip()
         thisChromStart0=int(fields[1])
         thisChromEnd1=int(fields[2])
-
+        if(len(thisChrom)==0):
+            continue
         if thisItemName!=itemName:
+            
             outMemLines(stdout,memLines,chroms,chromMin,chromMax,spanMax,exons)
             memLines=[lin]
             itemName=thisItemName
@@ -76,10 +79,11 @@ if __name__=='__main__':
             exons=[[thisChromStart0,thisChromEnd1]]
         else:
             chroms.add(thisChrom)
-            chromMin=min(chromMin,thisChromStart0)
-            chromMax=max(chromMax,thisChromEnd1)
-            memLines.append(lin)
-            exons.append([thisChromStart0,thisChromEnd1])
+            if len(chroms)==1: #no need to add if len(chrom)>1 to save time and memory.
+                chromMin=min(chromMin,thisChromStart0)
+                chromMax=max(chromMax,thisChromEnd1)
+                memLines.append(lin)
+                exons.append([thisChromStart0,thisChromEnd1])
             
     fil.close()
 
