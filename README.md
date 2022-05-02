@@ -14,6 +14,17 @@ JACKIE (Jackie and Albert's CRISPR K-mer Instances Enumerator) [yes, a recursive
 Precomputed CRISPR sites (JACKIEdb) available for hg38 and mm10, available at http://cheng.bio/JACKIE
 Users interested in strating from precomputed sites to further filter or identify sites within regions, etc, can jump to the [later sections](README.md#filtering-examples)
 
+## Binaries
+
+Binaries available for:
+Architecture | Folder
+--- | --- 
+Intel Mac | [Binaries/x86_64-Mac](Binaries/x86_64-Mac)
+--- | --- 
+M1 Mac | [Binaries/arm64-apple-darwin20](Binaries/arm64-apple-darwin20)
+--- | ---
+Linux x86_64 | [Binaries/x86_64-linux](Binaries/x86_64-linux)
+
 ## Installation
 
 With root privilege:
