@@ -136,8 +136,8 @@ sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/combineBed.sh
 
 Optional step - collapse CRISPR sites from same chromosome into an extended bed format, with each line containing sites of the same sequence:
 ```
-#collapse sgRNA binding locations with same sequecnes into an extended bed format
-chainExonBedsToTranscriptBed.py ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.BED 0 > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.bed
+#collapse sgRNA binding locations with same sequecnes into an extended bed format (exclusively within a chromosome)
+chainSameChromSites.py ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.BED 0 2 > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.bed
 ```
 
 Optional step - sort extended bed file:
@@ -146,21 +146,8 @@ sort -k1,1 -k2,2n ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${sh
 
 #some CRISPR sites are overlapping, and will crash browser visualization. Remove entries with overlapping sgRNA sites
 
-removeIllegalBlockEntries.py ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.bed ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.legal.bed ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.sameChr.tx.sorted.illegal.bed"
-
 ```
 
-Optional: filter for gc range 40%-60%, copy number = 1, max tandem run of T = 4
-```
-gcRange=0.4,0.6
-cpRange=1,1
-maxTandemT=4
-echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
-echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
-echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
-echo "python ${JACKIE_DIR}/filterPAMFoldGC.py --gc-range $gcRange --cp-range $cpRange --max-tandem-t $maxTandemT ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.BED > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED" >> ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
-sbatch ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/filterGC.slurmjob.sh
-```
 Optional: If you want to compute off-target profiles.
 Encode k-mer sequence NGG-subspace of the genome using `JACKIE.encodeSeqSpaceNGG`. If no NGG restriction, use `JACKIE.encodeSeqSpace`.
 ```
@@ -169,19 +156,6 @@ echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.stderr
 echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 echo "date; ${JACKIE_DIR}/JACKIE.encodeSeqSpaceNGG ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.NGG.seqbits.gz $kmer ${GENOME_DIR}/${GENOME}/nr/*.fa; date" >> ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
 sbatch ${GENOME_DIR}/${GENOME}/encodeSeqSpaceNGG.$kmer.slurmjob.sh
-```
-
-
-
-
-Optional example:
-Generate 3-mismatch off-target profiles for sgRNA with gc range 40%-60%, copy number = 1, max tandem run of T = 4. piped into awk script to put result string into name of the bed file to preserve bed formatting. remove NucKey.
-```
-echo "${CLUSTER_SCRIPT_HEADER}" > ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
-echo "#SBATCH -e ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.stderr" >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
-echo "#SBATCH -o ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.stdout" >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
-echo "date; ${JACKIE_DIR}/JACKIE.countSeqNeighbors ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.NGG.seqbits.gz $kmer $mm ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.BED 4,/,2 | awk -v FS=\"\\t\" -v OFS=\"\\t\" '{split(\$4,a,\"/\"); \$4=a[2] \"/\" \$7; print \$1,\$2,\$3,\$4,\$5,\$6}' > ${GENOME_DIR}/${GENOME}/pamFold-${shortPattern}/${GENOME}.${shortPattern}.cpRange${cpRange}.GC${gcRange}.offProfile.BED ; date"  >> ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
-sbatch ${GENOME_DIR}/${GENOME}/countSeqNeighbors.$kmer.slurmjob.sh
 ```
 
 JACKIE.encodeSeqSpace and JACKIE.encodeSeqSpaceNGG with kmer=20 will require 128GB memory (RAM virtual). If such memory is not available. 
