@@ -540,39 +540,54 @@ void convertFiltersToArray(){
 
 
 void transferSortCriteriaToArray(){
+
+
     if(!gLastSortCriterion){
         return;
     }
+
+    
+    for(SortCriterion*x=gLastSortCriterion;x!=NULL;x=x->next){
+
+        //xToFree convert colString -> colNum1 TODO!!
+        if(x->colNum1==SMALLEST_INT){
+            x->colNum1=colStringToColNum1(x->colString);
+            if(x->colNum1<1){
+
+
+                errAbort("failed to find column with name %s",x->colString);   
+            }
+        }
+
+        if(x->colNum1>gSortCrtieriaMaxColNum1){
+            gSortCrtieriaMaxColNum1=x->colNum1;
+        }
+
+    }
+
     gSortWatchList=(int*)malloc(gSortCrtieriaMaxColNum1*sizeof(int)+sizeof(int));
     for(int i=0;i<=gSortCrtieriaMaxColNum1;i++){
         gSortWatchList[i]=0;
     }
+
     gSortCriteriaArray=(SortCriterion*)malloc(gNumSortCriteria*sizeof(SortCriterion));
+
     SortCriterion*x=gLastSortCriterion;
+
     for(int i=gNumSortCriteria-1;i>=0;i--){
         SortCriterion*xToFree=x;
         x=x->next;
 
-        //xToFree convert colString -> colNum1 TODO!!
-        if(xToFree->colNum1==SMALLEST_INT){
-            xToFree->colNum1=colStringToColNum1(xToFree->colString);
-            if(xToFree->colNum1<1){
-                
-
-                errAbort("failed to find column with name %s",xToFree->colString);
-                
-            }
-        }
-
-        if(xToFree->colNum1>gSortCrtieriaMaxColNum1){
-            gSortCrtieriaMaxColNum1=xToFree->colNum1;
-        }
         gSortCriteriaArray[i].type=xToFree->type;
         gSortCriteriaArray[i].colNum1=xToFree->colNum1;
         gSortWatchList[xToFree->colNum1]=1;
+
+
         free(xToFree);
     }
+
 }
+
 
 
 void repairStringAfterStrtok(char *str,char delimiter,int length){
