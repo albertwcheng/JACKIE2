@@ -2,7 +2,16 @@
 
 JACKIE.queryDB is a modified version of Kent's bigBedToBed which allows the extraction of multiple regions simultaneously, as well as allowing for filtering of integer-based fields of custom bigBed format. Also allows for the selection of a specified number of best bed items according to a series of column sorting criteria.
 
-Binaries are available for Mac M1 Chip and Unix (x86_64) under the JACKIE's GitHub Binaries folder
+Binaries are available under the JACKIE's GitHub Binaries folder
+
+Architecture | Folder
+--- | ---
+M1 Mac | [Binaries/arm64-apple-darwin20](Binaries/arm64-apple-darwin20)
+Intel Mac x86_64 | [Binaries/x86_64-Mac](Binaries/x86_64-Mac)
+Linux x86_64 | [Binaries/x86_64-linux](Binaries/x86_64-linux)
+
+
+
 To build from source, skip to [Building JACKIE.queryDB](#building-JACKIE.queryDB)
 
 Usage: JACKIE.queryDB [-filter <filterFile>] input.bb 
