@@ -6,9 +6,9 @@ Binaries are available under the JACKIE's GitHub Binaries folder
 
 Architecture | Folder
 --- | ---
-M1 Mac | [Binaries/arm64-apple-darwin20](Binaries/arm64-apple-darwin20)
-Intel Mac x86_64 | [Binaries/x86_64-Mac](Binaries/x86_64-Mac)
-Linux x86_64 | [Binaries/x86_64-linux](Binaries/x86_64-linux)
+M1 Mac | [Binaries/arm64-apple-darwin20](../Binaries/arm64-apple-darwin20)
+Intel Mac x86_64 | [Binaries/x86_64-Mac](../Binaries/x86_64-Mac)
+Linux x86_64 | [Binaries/x86_64-linux](../Binaries/x86_64-linux)
 
 
 
