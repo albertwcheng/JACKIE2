@@ -27,6 +27,7 @@ int *gFilterMins=NULL;
 int *gFilterMaxs=NULL;
 int gFilterMaxColNum1=0;
 char * gInBB=NULL;
+int gIgnoreError=0;
 
 void replaceCharInString(char *target,char from,char to){
     while((*target)!='\0'){
@@ -443,6 +444,7 @@ static struct optionSpec options[] = {
    {"header", OPTION_BOOLEAN},
    {"printComments", OPTION_BOOLEAN},
    {"printAutoSqlCols",OPTION_BOOLEAN},
+   {"ignoreColumnKeyError",OPTION_BOOLEAN},
    {NULL, 0},
 };
 
@@ -511,7 +513,10 @@ void convertFiltersToArray(){
             x->colNum1=colStringToColNum1(x->colString);
             if(x->colNum1<1){
                 
-                errAbort("failed to find column with name %s",x->colString);
+                if(gIgnoreError)
+                    continue;
+                else
+                    errAbort("failed to find column with name %s",x->colString);
                 
             }
         }
@@ -530,8 +535,10 @@ void convertFiltersToArray(){
         gFilterMaxs[i]=SMALLEST_INT;
     }
     for(struct FilterColumnCriteria*x=gFirstFilter;x!=NULL;x=x->next){
-        gFilterMins[x->colNum1]=x->min;
-        gFilterMaxs[x->colNum1]=x->max;
+        if(x->colNum1>=1){
+            gFilterMins[x->colNum1]=x->min;
+            gFilterMaxs[x->colNum1]=x->max;
+        }
     }
 
     freeFilters();
@@ -546,7 +553,8 @@ void transferSortCriteriaToArray(){
         return;
     }
 
-    
+    gNumSortCriteria=0;
+
     for(SortCriterion*x=gLastSortCriterion;x!=NULL;x=x->next){
 
         //xToFree convert colString -> colNum1 TODO!!
@@ -554,9 +562,13 @@ void transferSortCriteriaToArray(){
             x->colNum1=colStringToColNum1(x->colString);
             if(x->colNum1<1){
 
-
-                errAbort("failed to find column with name %s",x->colString);   
+                if(gIgnoreError)
+                    continue;
+                else
+                    errAbort("failed to find column with name %s",x->colString);   
             }
+
+            gNumSortCriteria++;
         }
 
         if(x->colNum1>gSortCrtieriaMaxColNum1){
@@ -578,9 +590,11 @@ void transferSortCriteriaToArray(){
         SortCriterion*xToFree=x;
         x=x->next;
 
-        gSortCriteriaArray[i].type=xToFree->type;
-        gSortCriteriaArray[i].colNum1=xToFree->colNum1;
-        gSortWatchList[xToFree->colNum1]=1;
+        if(xToFree->colNum1>=1){
+            gSortCriteriaArray[i].type=xToFree->type;
+            gSortCriteriaArray[i].colNum1=xToFree->colNum1;
+            gSortWatchList[xToFree->colNum1]=1;
+        }
 
 
         free(xToFree);
@@ -857,7 +871,7 @@ void parseFilterLine(char *line){
             return;
         }
 
-        if(line[0]=='$'){
+        if(line[0]=='$' || line[0]=='.'){
             //this is a filter
             readType=READ_FILTER;
             if(gPrintComment) printf("#%s\n",line);
@@ -1010,6 +1024,7 @@ gWriteQueryToName = optionExists("addQueryRangeToName");
 header = optionExists("header");
 gPrintComment = optionExists("printComments");
 gPrintAutoSqlColumnsOnly = optionExists("printAutoSqlCols");
+gIgnoreError=optionExists("ignoreColumnKeyError");
 
 if(clRangeListFile || clFilterFile){
 
