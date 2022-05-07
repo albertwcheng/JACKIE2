@@ -19,7 +19,7 @@ For convenient piping, I have decided to change output to STDOUT instead of writ
 
 # Generate JACKIE.queryDB command using web form
   
-Generate JACKIE.queryDB command for
+For your convenience, we have webforms that can help you generate JACKIE.queryDB command on:
 
 [One Copy hg38 CRISPR/SpCas9 JACKIEdb](https://cheng.bio/generate-jackiequerydb-command/?infilename=hg38PAM.1copy.offSiteCounts.wGCT.bed.gz)
 
