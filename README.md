@@ -225,8 +225,8 @@ Make bigBed-formatted JACKIEdb according to the following AutoSql structures
 For one-copy sites
 
 ```
-table OneCopyPAMOffSiteCounts
-"One-copy CRISPR SpCas9 NGG sites and off-target counts up to 3 mismatches"
+table OneCopyOffSiteCounts
+"One-copy sites and off-target counts up to 3 mismatches"
 (
 string  chrom;		"Reference sequence chromosome or scaffold"
 uint    chromStart;	"Start position of feature on chromosome"
@@ -247,6 +247,7 @@ string  spacerSeq;  "Spacer sequence of gRNA"
 uint    percentGC;  "Percent GC of spacer sequence"
 uint    longestTandemT; "Longest run of T"
 )
+
 
 ```
 We need to duplicate some fields (thickStart, thickEnd), generate the nXmismatches, totalOffsites, percentGC longestTandemT fields etc
@@ -273,13 +274,13 @@ awk -v FS="\t" -v OFS="\t" awk -v FS="\t" -v OFS="\t" $SevenColumnBedFile ' {spl
 sort -k1,1 -k2,2n $EighteenColumnBedFile > ${EighteenColumnBedFile/.bed/}.sorted.bed
 
 #convert to bigBed
-bedToBigBed -as=hg38PAM.1copy.offSiteCounts.as -type=bed9+9 ${EighteenColumnBedFile/.bed/}.sorted.bed hg38.chrom.sizes ${EighteenColumnBedFile/.bed/}.sorted.bb
+bedToBigBed -as=OneCopyOffSiteCounts.as -type=bed9+9 ${EighteenColumnBedFile/.bed/}.sorted.bed hg38.chrom.sizes ${EighteenColumnBedFile/.bed/}.sorted.bb
 ```
 
 and for 2+ copies clusters
 ```
-table hg38TwoPlusCopyPAMOffSiteCounts
-"One-copy CRISPR SpCas9 NGG sites and off-target counts up to 3 mismatches"
+table TwoPlusCopyOffSiteCounts
+"TwoPlus copies sites and off-target counts up to 3 mismatches"
 (
 string  chrom;		"Reference sequence chromosome or scaffold"
 uint    chromStart;	"Start position of feature on chromosome"
