@@ -222,7 +222,7 @@ JACKIE.countOffSites ${GENOME_DIR}/${GENOME}/$GENOME.$kmer.[AA,AC,AG,AT,CA,CC,CG
 ```
 
 Make bigBed-formatted JACKIEdb according to the following AutoSql structures
-For one-copy sites
+For one-copy sites [AutoSql_files/OneCopyOffSiteCounts.as](AutoSql_files/OneCopyOffSiteCounts.as)
 
 ```
 table OneCopyOffSiteCounts
@@ -277,7 +277,7 @@ sort -k1,1 -k2,2n $EighteenColumnBedFile > ${EighteenColumnBedFile/.bed/}.sorted
 bedToBigBed -as=OneCopyOffSiteCounts.as -type=bed9+9 ${EighteenColumnBedFile/.bed/}.sorted.bed hg38.chrom.sizes ${EighteenColumnBedFile/.bed/}.sorted.bb
 ```
 
-and for 2+ copies clusters
+and for 2+ copies clusters [AutoSql_files/TwoPlusCopyOffSiteCounts.as](AutoSql_files/TwoPlusCopyOffSiteCounts.as)
 ```
 table TwoPlusCopyOffSiteCounts
 "TwoPlus copies sites and off-target counts up to 3 mismatches"
