@@ -12,7 +12,7 @@ JACKIE (Jackie and Albert's CRISPR K-mer Instances Enumerator) [yes, a recursive
 
 ## Precomputed CRISPR sites (JACKIEdb)
 Precomputed CRISPR sites (JACKIEdb) available for hg38 and mm10, available at http://cheng.bio/JACKIE
-Users interested in strating from precomputed sites to further filter or identify sites within regions, etc, can jump to the [later sections](README.md#filtering-examples)
+Users interested in starting from precomputed sites to further filter or identify sites within regions, etc, can jump to the [later sections](README.md#filtering-examples)
 
 ## Install binaries
 
