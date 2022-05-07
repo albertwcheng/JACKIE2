@@ -20,10 +20,10 @@ For convenient piping, I have decided to change output to STDOUT instead of writ
 # Generate JACKIE.queryDB command using web form
   
 Generate JACKIE.queryDB command for
-  (One Copy hg38 CRISPR/SpCas9 JACKIEdb)[https://cheng.bio/generate-jackiequerydb-command/?infilename=hg38PAM.1copy.offSiteCounts.wGCT.bed.gz]
-  (2+ Copies <50k cluster hg38 CRISPR/SpCas9 JACKIEdb)[https://cheng.bio/generate-jackiequerydb-command/?multi=yes&infilename=hg38PAM.2PlusCopy.offSiteCounts.wGCT.within50kb.bed.gz]  
-  (One Copy mm10 CRISPR/SpCas9 JACKIEdb)[https://cheng.bio/generate-jackiequerydb-command/?infilename=mm10PAM.1copy.offSiteCounts.wGCT.bed.gz]
-  (2+ Copies <50k cluster  mm10 CRISPR/SpCas9 JACKIEdb)[https://cheng.bio/generate-jackiequerydb-command/?multi=yes&infilename=mm10PAM.2PlusCopy.offSiteCounts.wGCT.within50kb.bed.gz]  
+  [One Copy hg38 CRISPR/SpCas9 JACKIEdb](https://cheng.bio/generate-jackiequerydb-command/?infilename=hg38PAM.1copy.offSiteCounts.wGCT.bed.gz)
+  [2+ Copies <50k cluster hg38 CRISPR/SpCas9 JACKIEdb](https://cheng.bio/generate-jackiequerydb-command/?multi=yes&infilename=hg38PAM.2PlusCopy.offSiteCounts.wGCT.within50kb.bed.gz)
+  ]One Copy mm10 CRISPR/SpCas9 JACKIEdb](https://cheng.bio/generate-jackiequerydb-command/?infilename=mm10PAM.1copy.offSiteCounts.wGCT.bed.gz)
+  ]2+ Copies <50k cluster  mm10 CRISPR/SpCas9 JACKIEdb](https://cheng.bio/generate-jackiequerydb-command/?multi=yes&infilename=mm10PAM.2PlusCopy.offSiteCounts.wGCT.within50kb.bed.gz)  
   
 # Basic operations with examples
 
