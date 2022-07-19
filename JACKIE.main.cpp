@@ -78,6 +78,13 @@ void printFGHelp(const char* programname)
 	cerr<<"fasta prefix2 ignoreLowercaseSeq(y/n) (singles/clusters) kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tsort genome by k-mer sequences"<<endl;
 	#endif
+
+	#ifdef __JACKIE_SORTED_VECTOR__
+	cerr<<"Usage:"<<programname<<" ";
+	cerr<<"fasta prefix2 ignoreLowercaseSeq(y/n) (singles/clusters) kmerPatternMatch(e.g.,ATNWXXXXXNVG) maxCopies"<<endl;
+	cerr<<"\tsort genome by k-mer sequences up to maxCopies"<<endl;
+	cerr<<"\tIf input fasta is sorted as in sort -k1,1 order, the output bed can be directly used for bedToBigBed conversion"<<endl;
+	#endif	
 	
 }
 
@@ -159,6 +166,20 @@ void JACKIE_vectorSeq(int argc,const char** argv)
 	vect.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' , !strcmp(argv[4],"clusters") );
 	
 }
+
+void JACKIE_svectorSeq(int argc,const char** argv)
+{
+	if(argc<7)
+	{
+		printFGHelp(argv[0]);
+		return;
+	}
+	
+	GenomeNmersVector2 vect(argv[5]);
+	vect.transferFromFastaFile(argv[1],argv[2],argv[3][0]=='N' || argv[3][0]=='n' , !strcmp(argv[4],"clusters") , atoi(argv[6]) );
+	
+}
+
 
 
 void foldGenomics_generateBinary(int argc,const char** argv)
@@ -682,6 +703,11 @@ int main(int argc, const char **argv)
 	#ifdef __JACKIE_VECTOR__
 	cerr<<"Subroutine JACKIE.vector"<<endl;
 	JACKIE_vectorSeq(argc,argv);
+	#endif
+
+	#ifdef __JACKIE_SORTED_VECTOR__
+	cerr<<"Subroutine JACKIE.svector"<<endl;
+	JACKIE_svectorSeq(argc,argv);
 	#endif
 
 	cerr<<"<Done>"<<endl;

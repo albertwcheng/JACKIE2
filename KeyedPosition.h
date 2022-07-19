@@ -1739,4 +1739,385 @@ public:
 	
 };
 
+class GenomeNmersVector2
+{
+public:
+
+	int nmersize;
+
+
+	string nmerPattern;
+	
+	int keyStart;
+	int keyEnd;
+	vector<KeyedPosition> kps;
+	map<int/*chrID*/,string/*chromName*/> chrID2chrName_Map;
+	
+	inline ~GenomeNmersVector2()
+	{	
+
+	}
+	inline GenomeNmersVector2(int _nmersize):nmersize(_nmersize)
+	{
+		keyStart=0;
+		keyEnd=nmersize;
+	}
+
+	inline GenomeNmersVector2(string _nmerPattern):nmerPattern(_nmerPattern)
+	{
+		nmersize=nmerPattern.length();
+
+		for(int i=0;i<nmersize;i++){
+			if(nmerPattern[i]=='X'){
+				keyStart=i;
+				break;
+			}
+		}
+
+		for(int i=nmersize-1;i>=0;i--){
+			if(nmerPattern[i]=='X'){
+				keyEnd=i+1;
+				break;
+			}
+		}
+	}
+
+	inline const char* getStrPtr(int i,const string& str)
+	{
+		return str.c_str()+i;
+	}
+
+
+	inline bool acceptPAM(int i,const string& str)
+    {
+        
+		const char* _tmpNmerPattern=this->nmerPattern.c_str();
+        
+        for(int j=i;j<i+nmersize;j++){
+		
+			char thisBase=str[j];
+
+            if(thisBase>'T' || thisBase=='N'){
+
+                return false;
+            }
+            
+			char thisPatternBase=*_tmpNmerPattern;
+
+			if(thisPatternBase!='X' && thisPatternBase!='N'){
+				switch(thisPatternBase){
+					case 'A':
+					case 'C':
+					case 'G':
+					case 'T':
+						if(thisBase!=thisPatternBase){
+							return false;
+						}
+						break;
+					case 'W':
+						if(thisBase!='A' && thisBase!='T'){
+							return false;
+						}
+						break;
+					case 'S':
+						if(thisBase!='C' && thisBase!='G'){
+							return false;
+						}
+						break;
+					case 'M':
+						if(thisBase!='A' && thisBase!='C'){
+							return false;
+						}
+						break;
+					case 'K':
+						if(thisBase!='G' && thisBase!='T'){
+							return false;
+						}
+						break;							
+					case 'R':
+						if(thisBase!='A' && thisBase!='G'){
+							return false;
+						}
+						break;
+					case 'Y':
+						if(thisBase!='C' && thisBase!='T'){
+							return false;
+						}
+						break;
+					case 'B':
+						if(thisBase=='A'){
+							return false;
+						}
+						break;
+					case 'D':
+						if(thisBase=='C'){
+							return false;
+						}
+						break;
+					case 'H':
+						if(thisBase=='G'){
+							return false;
+						}
+						break;
+					case 'V':
+						if(thisBase=='T'){
+							return false;
+						}
+						break;
+					default:
+						return false;
+						break;
+				}
+
+			}
+
+			_tmpNmerPattern++;
+        }
+
+        return true;
+    }
+
+
+    inline bool acceptPAM_NGG(int i,const string& str)
+    {
+        //NGG = 22G 23G
+        
+        for(int j=i;j<i+nmersize;j++){
+            //cerr<<"check "<<str[j]<<" " <<(str[j]>'T' || str[j]=='N')<<endl;
+            if(str[j]>'T' || str[j]=='N'){
+                //lowercase or N
+                //cerr<<"******reject "<<str.substr(i,23)<<endl;
+                return false;
+            }
+            
+            /*f(str[j]=='n' || str[j]=='N'){
+                //N
+                //cerr<<"******reject "<<str.substr(i,23)<<endl;
+                return false;
+            }*/
+            
+            
+        }
+        
+        
+        return (str[i+nmersize-2]=='G' || str[i+nmersize-2]=='g') && (str[i+nmersize-1]=='G' || str[i+nmersize-1]=='g');
+    }
+    
+	void outputKP(int freq,vector<Position>& store,const KeyedPosition&preKP){
+		string seq=Key3b2Nuc(preKP.b);
+		int seqLength=seq.length();
+		
+		for(int i=0;i<store.size();i++){
+	
+			int start0=store[i].getPos()-1;
+			int end1=start0+seqLength;
+			char strand=(store[i].isForward()?'+':'-');
+			
+			cout<<chrID2chrName_Map[store[i].chrID]<<"\t"<<start0<<"\t"<<end1<<"\t"<<preKP.b<<"."<<freq<<"/"<<seq<<"\t"<<freq<<"\t"<<strand<<endl;
+		}
+	}
+
+	void outputKPcluster(int freq,vector<Position>& store,const KeyedPosition&preKP){
+		string seq=Key3b2Nuc(preKP.b);
+		int seqLength=seq.length();
+		bool sameChr=true;
+		
+		std:sort(store.begin(),store.end());
+		vector<Position>&sortedPositions=store;
+		int firstChrID=sortedPositions[0].chrID;
+		string firstStrand=sortedPositions[0].getStrand();
+		int firstStart0=sortedPositions[0].getPos()-1;
+
+		string blockStarts="0";
+		string blockLen=StringUtil::str(seqLength);
+		string blockLengths=blockLen;
+
+		for(int x=1;x<sortedPositions.size();x++){
+			Position& thisPos=sortedPositions[x];
+			if(thisPos.chrID!=firstChrID){
+				sameChr=false;
+				break;
+			}
+			if(thisPos.getStrand()!=firstStrand){
+				firstStrand=".";
+			}
+
+			if(sortedPositions[x].getPos()-sortedPositions[x-1].getPos()<seqLength){
+				sameChr=false; //illegal block, overlap!
+				break;
+			}
+			blockStarts+=","+StringUtil::str(thisPos.getPos()-1-firstStart0);
+			blockLengths+=","+blockLen;
+		}
+
+		if(sameChr){
+			int lastEnd1=(seq.length()+sortedPositions[sortedPositions.size()-1].getPos()-1);
+			cout<<chrID2chrName_Map[firstChrID]<<"\t"<<firstStart0<<"\t"<<lastEnd1
+				<<"\t"<<preKP.b<<"."<<sortedPositions.size()<<"/"<<seq<<"/k="<<sortedPositions.size()<<"/s="<<(lastEnd1-firstStart0)
+				<<"\t"<<sortedPositions.size()<<"\t"<<firstStrand<<"\t"<<firstStart0<<"\t"<<lastEnd1<<"\t0,0,0\t"<<sortedPositions.size()<<"\t"<<blockLengths<<"\t"<<blockStarts<<endl;
+		}
+
+	}
+
+	inline void transferFromFastaFile(string fastaFileName,string prefixConstraint,bool autoUpperCase,bool collapseSameChromosomeToExtendedBed,int maxFreq)
+	{
+		int curChrID=0;
+		FastaFile ffile(fastaFileName,autoUpperCase);
+		int nReads=0;
+		
+		int constraintLength=prefixConstraint.length();
+		
+		while(ffile.readEntry())
+		{
+			int nCurReads=0;
+			curChrID++;
+			
+			
+			cerr<<"Encoding "<<curChrID<<":"<<ffile.seqName<<" of length "<<ffile.seq.length()<<endl;
+			chrID2chrName_Map.insert(map<int,string>::value_type(curChrID,ffile.seqName));
+			
+			int seqLength=ffile.seq.length();
+			if(seqLength<nmersize)
+			{
+				cerr<<"Ignored: sequence of "<<ffile.seqName<<" has length smaller than nmersize"<<endl;
+				cerr<<": ignored: sequence has length smaller then nmersize "<<endl;
+				continue;
+			}
+			
+                
+			for(int i=0;i<=seqLength-nmersize;i++)
+			{
+                
+                
+                if(!acceptPAM(i,ffile.seq)){
+                    continue;
+                }
+                
+                //cerr<<"accept "<<ffile.seq.substr(i,23)<<endl;
+                
+				
+				if(prefixConstraint!="" && ffile.seq.substr(i+keyStart,constraintLength)!=prefixConstraint)
+				{
+					continue;
+				}
+				
+				
+				KeyedPosition kpos(getStrPtr(i+keyStart,ffile.seq),keyEnd-keyStart,curChrID,i+keyStart+1,true); //nmersize-3 to discount the PAM sequence
+                
+				kps.push_back(kpos);
+				
+				
+
+
+				nCurReads++;
+				
+				
+				
+				
+				
+			}
+			
+			
+			
+			string rseq=reverse_complement(ffile.seq);
+			
+			
+			for(int i=0;i<=seqLength-nmersize;i++)
+			{
+
+                if(!acceptPAM(i,rseq)){
+                    continue;
+                }
+                
+                //cerr<<"accept "<<rseq.substr(i,23)<<endl;
+                
+
+				
+				if(prefixConstraint!="" && rseq.substr(i+keyStart,constraintLength)!=prefixConstraint)
+				{
+					continue;
+				}
+				
+                
+				KeyedPosition kpos(getStrPtr(i+keyStart,rseq),keyEnd-keyStart,curChrID,seqLength-i-keyEnd+1/*seqLength-nmersize-i+1+3*/,false); //nmersize-3  seqLength-nmersize-i+1+3
+				
+				kps.push_back(kpos);
+                
+
+				nCurReads++;
+				
+				
+				
+				
+			}			
+			
+			cerr<<" outputing "<<nCurReads<<" reads with prefixConstraint "<<prefixConstraint<<endl;
+			nReads+=nCurReads;
+			
+		}
+
+		std::stable_sort(kps.begin(),kps.end());
+
+
+		KeyedPosition prePos=kps[0];
+		
+		vector<Position> store;
+		
+		store.push_back(prePos);
+		int freq=1;
+		int fEntries=0;
+
+		for(int i=1;i<kps.size();i++)
+		{
+			const KeyedPosition& thisPos=kps[i];
+			
+			if(thisPos==prePos)
+			{
+				
+				freq++;
+			}
+			else
+			{
+				if(freq<=maxFreq){
+					if(collapseSameChromosomeToExtendedBed){
+						outputKPcluster(freq,store,prePos);
+					}else{
+						outputKP(freq,store,prePos);
+					}	
+					fEntries++;
+				}
+				
+				prePos=thisPos;
+				freq=1;
+				store.clear();
+				
+			}
+			if(freq<=maxFreq){
+				store.push_back(thisPos);
+			}
+		}
+		
+		if(freq<=maxFreq){
+			if(collapseSameChromosomeToExtendedBed){
+				outputKPcluster(freq,store,prePos);
+			}else{
+				outputKP(freq,store,prePos);
+			}	
+				
+			fEntries++;
+		}
+		
+
+
+		
+		cerr<<curChrID<<" sequence(s) processed."<<nReads<<" simulated read(s) outputed "<<endl;
+		//cout<<curChrID<<" sequence(s) processed."<<nReads<<" simulated read(s) outputed "<<endl;
+
+		
+		
+	}
+	
+	
+};
+
 #endif /*KEYEDPOSITION_H_*/
