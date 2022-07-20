@@ -73,17 +73,17 @@ void printFGHelp(const char* programname)
 	#endif
 
 
-	#ifdef __JACKIE_VECTOR__
+	/*#ifdef __JACKIE_VECTOR__
 	cerr<<"Usage:"<<programname<<" ";
 	cerr<<"fasta prefix2 ignoreLowercaseSeq(y/n) (singles/clusters) kmerPatternMatch(e.g.,ATNWXXXXXNVG)"<<endl;
 	cerr<<"\tsort genome by k-mer sequences"<<endl;
-	#endif
+	#endif*/
 
-	#ifdef __JACKIE_SORTED_VECTOR__
+	#ifdef __JACKIE_VECTOR__
 	cerr<<"Usage:"<<programname<<" ";
 	cerr<<"fasta prefix2 ignoreLowercaseSeq(y/n) (singles/clusters) kmerPatternMatch(e.g.,ATNWXXXXXNVG) maxCopies"<<endl;
 	cerr<<"\tsort genome by k-mer sequences up to maxCopies"<<endl;
-	cerr<<"\tIf input fasta is sorted as in sort -k1,1 order, the output bed can be directly used for bedToBigBed conversion"<<endl;
+	//cerr<<"\tIf input fasta is sorted as in sort -k1,1 order, the output bed can be directly used for bedToBigBed conversion"<<endl;
 	#endif	
 	
 }
@@ -702,11 +702,6 @@ int main(int argc, const char **argv)
 
 	#ifdef __JACKIE_VECTOR__
 	cerr<<"Subroutine JACKIE.vector"<<endl;
-	JACKIE_vectorSeq(argc,argv);
-	#endif
-
-	#ifdef __JACKIE_SORTED_VECTOR__
-	cerr<<"Subroutine JACKIE.svector"<<endl;
 	JACKIE_svectorSeq(argc,argv);
 	#endif
 

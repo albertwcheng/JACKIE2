@@ -2056,7 +2056,7 @@ public:
 			
 		}
 
-		std::stable_sort(kps.begin(),kps.end());
+		std::sort(kps.begin(),kps.end());
 
 
 		KeyedPosition prePos=kps[0];
