@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-bin_PROGRAMS = JACKIE.bin JACKIE.sortToBed JACKIE.vector JACKIE.svector JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.encodeSeqSpace.prefixed JACKIE.encodeSeqCountDatabase JACKIE.countSeqNeighbors.pmulti JACKIE.countOffSites
+bin_PROGRAMS = JACKIE.bin JACKIE.sortToBed JACKIE.vector JACKIE.encodeSeqSpaceNGG JACKIE.countSeqNeighbors JACKIE.encodeSeqSpace JACKIE.encodeSeqSpace.prefixed JACKIE.encodeSeqCountDatabase JACKIE.countSeqNeighbors.pmulti JACKIE.countOffSites
 bin_SCRIPTS = outbedForPrefixJob.sh chainSameChromSites.py removeIllegalBlockEntries.py fastjoinBedByOverlap.py runCasOFFinderOnSequences.py filterTableForZFableSeq.py filterTableForZFableSeqAndCopyNum.py filterPAMFoldGC.py
 JACKIE_bin_SOURCES = JACKIE.main.cpp
 JACKIE_bin_CPPFLAGS = -O3 -D__FAST_IO__ -D__BIN_MAIN__

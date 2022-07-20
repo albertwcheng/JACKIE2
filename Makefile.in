@@ -88,8 +88,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = JACKIE.bin$(EXEEXT) JACKIE.sortToBed$(EXEEXT) \
-	JACKIE.vector$(EXEEXT) JACKIE.svector$(EXEEXT) \
-	JACKIE.encodeSeqSpaceNGG$(EXEEXT) \
+	JACKIE.vector$(EXEEXT) JACKIE.encodeSeqSpaceNGG$(EXEEXT) \
 	JACKIE.countSeqNeighbors$(EXEEXT) \
 	JACKIE.encodeSeqSpace$(EXEEXT) \
 	JACKIE.encodeSeqSpace.prefixed$(EXEEXT) \
@@ -166,9 +165,6 @@ JACKIE_encodeSeqSpaceNGG_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 am_JACKIE_sortToBed_OBJECTS = JACKIE_sortToBed-JACKIE.main.$(OBJEXT)
 JACKIE_sortToBed_OBJECTS = $(am_JACKIE_sortToBed_OBJECTS)
 JACKIE_sortToBed_LDADD = $(LDADD)
-am_JACKIE_svector_OBJECTS = JACKIE_svector-JACKIE.main.$(OBJEXT)
-JACKIE_svector_OBJECTS = $(am_JACKIE_svector_OBJECTS)
-JACKIE_svector_LDADD = $(LDADD)
 am_JACKIE_vector_OBJECTS = JACKIE_vector-JACKIE.main.$(OBJEXT)
 JACKIE_vector_OBJECTS = $(am_JACKIE_vector_OBJECTS)
 JACKIE_vector_LDADD = $(LDADD)
@@ -224,7 +220,6 @@ am__depfiles_remade = ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po \
 	./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po \
-	./$(DEPDIR)/JACKIE_svector-JACKIE.main.Po \
 	./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -251,8 +246,7 @@ SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
 	$(JACKIE_encodeSeqSpace_SOURCES) \
 	$(JACKIE_encodeSeqSpace_prefixed_SOURCES) \
 	$(JACKIE_encodeSeqSpaceNGG_SOURCES) \
-	$(JACKIE_sortToBed_SOURCES) $(JACKIE_svector_SOURCES) \
-	$(JACKIE_vector_SOURCES)
+	$(JACKIE_sortToBed_SOURCES) $(JACKIE_vector_SOURCES)
 DIST_SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
 	$(JACKIE_countSeqNeighbors_SOURCES) \
 	$(JACKIE_countSeqNeighbors_pmulti_SOURCES) \
@@ -260,8 +254,7 @@ DIST_SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
 	$(JACKIE_encodeSeqSpace_SOURCES) \
 	$(JACKIE_encodeSeqSpace_prefixed_SOURCES) \
 	$(JACKIE_encodeSeqSpaceNGG_SOURCES) \
-	$(JACKIE_sortToBed_SOURCES) $(JACKIE_svector_SOURCES) \
-	$(JACKIE_vector_SOURCES)
+	$(JACKIE_sortToBed_SOURCES) $(JACKIE_vector_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -555,10 +548,6 @@ JACKIE.sortToBed$(EXEEXT): $(JACKIE_sortToBed_OBJECTS) $(JACKIE_sortToBed_DEPEND
 	@rm -f JACKIE.sortToBed$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_sortToBed_OBJECTS) $(JACKIE_sortToBed_LDADD) $(LIBS)
 
-JACKIE.svector$(EXEEXT): $(JACKIE_svector_OBJECTS) $(JACKIE_svector_DEPENDENCIES) $(EXTRA_JACKIE_svector_DEPENDENCIES) 
-	@rm -f JACKIE.svector$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_svector_OBJECTS) $(JACKIE_svector_LDADD) $(LIBS)
-
 JACKIE.vector$(EXEEXT): $(JACKIE_vector_OBJECTS) $(JACKIE_vector_DEPENDENCIES) $(EXTRA_JACKIE_vector_DEPENDENCIES) 
 	@rm -f JACKIE.vector$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_vector_OBJECTS) $(JACKIE_vector_LDADD) $(LIBS)
@@ -613,7 +602,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_svector-JACKIE.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -761,20 +749,6 @@ JACKIE_sortToBed-JACKIE.main.obj: JACKIE.main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_sortToBed-JACKIE.main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_sortToBed_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_sortToBed-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
-
-JACKIE_svector-JACKIE.main.o: JACKIE.main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_svector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_svector-JACKIE.main.o -MD -MP -MF $(DEPDIR)/JACKIE_svector-JACKIE.main.Tpo -c -o JACKIE_svector-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_svector-JACKIE.main.Tpo $(DEPDIR)/JACKIE_svector-JACKIE.main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_svector-JACKIE.main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_svector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_svector-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
-
-JACKIE_svector-JACKIE.main.obj: JACKIE.main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_svector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_svector-JACKIE.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_svector-JACKIE.main.Tpo -c -o JACKIE_svector-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_svector-JACKIE.main.Tpo $(DEPDIR)/JACKIE_svector-JACKIE.main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='JACKIE.main.cpp' object='JACKIE_svector-JACKIE.main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_svector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_svector-JACKIE.main.obj `if test -f 'JACKIE.main.cpp'; then $(CYGPATH_W) 'JACKIE.main.cpp'; else $(CYGPATH_W) '$(srcdir)/JACKIE.main.cpp'; fi`
 
 JACKIE_vector-JACKIE.main.o: JACKIE.main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_vector_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_vector-JACKIE.main.o -MD -MP -MF $(DEPDIR)/JACKIE_vector-JACKIE.main.Tpo -c -o JACKIE_vector-JACKIE.main.o `test -f 'JACKIE.main.cpp' || echo '$(srcdir)/'`JACKIE.main.cpp
@@ -1072,7 +1046,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_svector-JACKIE.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -1130,7 +1103,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpaceNGG-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqSpace_prefixed-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po
-	-rm -f ./$(DEPDIR)/JACKIE_svector-JACKIE.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
