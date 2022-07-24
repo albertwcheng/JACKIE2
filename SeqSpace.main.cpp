@@ -2418,7 +2418,7 @@ class OffProfileRecordThresholded
             return this->overThreshold;
         }
 
-        for(int i=0;i<=offProfiles.size();i++){
+        for(int i=0;i<offProfiles.size();i++){
             uint32_t thisOffHits=this->offProfiles[i];
             totalHits+=thisOffHits;
             if(thisOffHits>_thres.offProfiles[i]){
@@ -3988,6 +3988,7 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
             switch(passType){
                 case COUNTSEQNEIGHBORS_FIRSTPASS:
                     offProfiles.push_back(OffProfileRecordThresholded(enumerator));
+                    offProfiles[recordNum].checkIfOverThreshold(offProfileMax,maxTotalHits);
                 break;
                 case COUNTSEQNEIGHBORS_MIDPASS:
                     offProfiles[recordNum].increment(enumerator);
