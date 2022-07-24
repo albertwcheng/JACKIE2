@@ -3945,15 +3945,16 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
         }
         string lin;
         getline(fin,lin);
+        /*DEBUG*/ cerr<<"line "<<lino<<lin<<" "<<endl;
         if(lin!=""){
 
             if(passType!=COUNTSEQNEIGHBORS_FIRSTPASS && offProfiles[recordNum].IsOverThreshold()){
                 recordNum++; //already over threshold, incremenet record num and skip everything downstream
                 continue;
             }
-
+            /*DEBUG*/ cerr<<"b";
             vector<SeqIdxCountPair>* thisOffProfilePositionsList=NULL;
-
+            /*DEBUG*/ cerr<<"c";
             if(offProfilePositionListsList){
                 if(passType==COUNTSEQNEIGHBORS_FIRSTPASS){
                     thisOffProfilePositionsList=new vector<SeqIdxCountPair>;
@@ -3964,10 +3965,10 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                 }
                 
             }
-
+            /*DEBUG*/ cerr<<"d";
             uint64_t seqIdx;
 
-
+            /*DEBUG*/ cerr<<"e";
             if(col0>=0){
                 vector<string> fields;
                 StringUtil::split(lin,"\t",fields);
@@ -3982,7 +3983,7 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
             }else{
                 seqIdx=enumerator.findOffTargetHits(lin,thisOffProfilePositionsList);
             }
-
+            /*DEBUG*/ cerr<<"f";
             switch(passType){
                 case COUNTSEQNEIGHBORS_FIRSTPASS:
                     offProfiles.push_back(OffProfileRecordThresholded(enumerator));
@@ -4015,7 +4016,8 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                     }
                 break;
             }
-
+            /*DEBUG*/ cerr<<"g";
+            /*DEBUG*/ cerr<<endl;
             recordNum++;
 
         }
