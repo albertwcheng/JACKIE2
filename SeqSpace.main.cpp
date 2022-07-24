@@ -3995,7 +3995,7 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                 break;
                 case COUNTSEQNEIGHBORS_LASTPASS:
                     offProfiles[recordNum].increment(enumerator);
-                    if(offProfiles[recordNum].checkIfOverThreshold(offProfileMax,maxTotalHits)){
+                    if(!offProfiles[recordNum].checkIfOverThreshold(offProfileMax,maxTotalHits)){
                         cout<<lin<<"\t"<<offProfiles[recordNum].getResultString();
                         if(thisOffProfilePositionsList){
                             cout<<"\t";
