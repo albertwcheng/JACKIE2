@@ -95,7 +95,7 @@ bin_PROGRAMS = JACKIE.bin$(EXEEXT) JACKIE.sortToBed$(EXEEXT) \
 	JACKIE.encodeSeqCountDatabase$(EXEEXT) \
 	JACKIE.countSeqNeighbors.pmulti$(EXEEXT) \
 	JACKIE.countOffSites$(EXEEXT) \
-	JACKIE.,countOffSites.thresholded$(EXEEXT)
+	JACKIE.countOffSites.thresholded$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -110,10 +110,6 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-JACKIE__countOffSites_thresholded_SOURCES = JACKIE.,countOffSites.c
-JACKIE__countOffSites_thresholded_OBJECTS =  \
-	JACKIE.,countOffSites.$(OBJEXT)
-JACKIE__countOffSites_thresholded_LDADD = $(LDADD)
 am_JACKIE_bin_OBJECTS = JACKIE_bin-JACKIE.main.$(OBJEXT)
 JACKIE_bin_OBJECTS = $(am_JACKIE_bin_OBJECTS)
 JACKIE_bin_LDADD = $(LDADD)
@@ -123,6 +119,14 @@ JACKIE_countOffSites_OBJECTS = $(am_JACKIE_countOffSites_OBJECTS)
 JACKIE_countOffSites_LDADD = $(LDADD)
 JACKIE_countOffSites_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(JACKIE_countOffSites_LDFLAGS) $(LDFLAGS) -o $@
+am_JACKIE_countOffSites_thresholded_OBJECTS =  \
+	JACKIE_countOffSites_thresholded-SeqSpace.main.$(OBJEXT)
+JACKIE_countOffSites_thresholded_OBJECTS =  \
+	$(am_JACKIE_countOffSites_thresholded_OBJECTS)
+JACKIE_countOffSites_thresholded_LDADD = $(LDADD)
+JACKIE_countOffSites_thresholded_LINK = $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(JACKIE_countOffSites_thresholded_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_JACKIE_countSeqNeighbors_OBJECTS =  \
 	JACKIE_countSeqNeighbors-SeqSpace.main.$(OBJEXT)
 JACKIE_countSeqNeighbors_OBJECTS =  \
@@ -216,9 +220,9 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/JACKIE.,countOffSites.Po \
-	./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po \
+am__depfiles_remade = ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po \
 	./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po \
+	./$(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po \
 	./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po \
@@ -228,18 +232,6 @@ am__depfiles_remade = ./$(DEPDIR)/JACKIE.,countOffSites.Po \
 	./$(DEPDIR)/JACKIE_sortToBed-JACKIE.main.Po \
 	./$(DEPDIR)/JACKIE_vector-JACKIE.main.Po
 am__mv = mv -f
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -257,8 +249,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = JACKIE.,countOffSites.c $(JACKIE_bin_SOURCES) \
-	$(JACKIE_countOffSites_SOURCES) \
+SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
+	$(JACKIE_countOffSites_thresholded_SOURCES) \
 	$(JACKIE_countSeqNeighbors_SOURCES) \
 	$(JACKIE_countSeqNeighbors_pmulti_SOURCES) \
 	$(JACKIE_encodeSeqCountDatabase_SOURCES) \
@@ -266,8 +258,8 @@ SOURCES = JACKIE.,countOffSites.c $(JACKIE_bin_SOURCES) \
 	$(JACKIE_encodeSeqSpace_prefixed_SOURCES) \
 	$(JACKIE_encodeSeqSpaceNGG_SOURCES) \
 	$(JACKIE_sortToBed_SOURCES) $(JACKIE_vector_SOURCES)
-DIST_SOURCES = JACKIE.,countOffSites.c $(JACKIE_bin_SOURCES) \
-	$(JACKIE_countOffSites_SOURCES) \
+DIST_SOURCES = $(JACKIE_bin_SOURCES) $(JACKIE_countOffSites_SOURCES) \
+	$(JACKIE_countOffSites_thresholded_SOURCES) \
 	$(JACKIE_countSeqNeighbors_SOURCES) \
 	$(JACKIE_countSeqNeighbors_pmulti_SOURCES) \
 	$(JACKIE_encodeSeqCountDatabase_SOURCES) \
@@ -458,7 +450,7 @@ JACKIE_vector_CPPFLAGS = -O3 -D__FAST_IO__ -D__JACKIE_VECTOR__
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .o .obj
+.SUFFIXES: .cpp .o .obj
 am--refresh: Makefile
 	@:
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
@@ -535,10 +527,6 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
-JACKIE.,countOffSites.thresholded$(EXEEXT): $(JACKIE__countOffSites_thresholded_OBJECTS) $(JACKIE__countOffSites_thresholded_DEPENDENCIES) $(EXTRA_JACKIE__countOffSites_thresholded_DEPENDENCIES) 
-	@rm -f JACKIE.,countOffSites.thresholded$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(JACKIE__countOffSites_thresholded_OBJECTS) $(JACKIE__countOffSites_thresholded_LDADD) $(LIBS)
-
 JACKIE.bin$(EXEEXT): $(JACKIE_bin_OBJECTS) $(JACKIE_bin_DEPENDENCIES) $(EXTRA_JACKIE_bin_DEPENDENCIES) 
 	@rm -f JACKIE.bin$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(JACKIE_bin_OBJECTS) $(JACKIE_bin_LDADD) $(LIBS)
@@ -546,6 +534,10 @@ JACKIE.bin$(EXEEXT): $(JACKIE_bin_OBJECTS) $(JACKIE_bin_DEPENDENCIES) $(EXTRA_JA
 JACKIE.countOffSites$(EXEEXT): $(JACKIE_countOffSites_OBJECTS) $(JACKIE_countOffSites_DEPENDENCIES) $(EXTRA_JACKIE_countOffSites_DEPENDENCIES) 
 	@rm -f JACKIE.countOffSites$(EXEEXT)
 	$(AM_V_CXXLD)$(JACKIE_countOffSites_LINK) $(JACKIE_countOffSites_OBJECTS) $(JACKIE_countOffSites_LDADD) $(LIBS)
+
+JACKIE.countOffSites.thresholded$(EXEEXT): $(JACKIE_countOffSites_thresholded_OBJECTS) $(JACKIE_countOffSites_thresholded_DEPENDENCIES) $(EXTRA_JACKIE_countOffSites_thresholded_DEPENDENCIES) 
+	@rm -f JACKIE.countOffSites.thresholded$(EXEEXT)
+	$(AM_V_CXXLD)$(JACKIE_countOffSites_thresholded_LINK) $(JACKIE_countOffSites_thresholded_OBJECTS) $(JACKIE_countOffSites_thresholded_LDADD) $(LIBS)
 
 JACKIE.countSeqNeighbors$(EXEEXT): $(JACKIE_countSeqNeighbors_OBJECTS) $(JACKIE_countSeqNeighbors_DEPENDENCIES) $(EXTRA_JACKIE_countSeqNeighbors_DEPENDENCIES) 
 	@rm -f JACKIE.countSeqNeighbors$(EXEEXT)
@@ -620,9 +612,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE.,countOffSites.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po@am__quote@ # am--include-marker
@@ -637,20 +629,6 @@ $(am__depfiles_remade):
 	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
 
 am--depfiles: $(am__depfiles_remade)
-
-.c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
-
-.c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -693,6 +671,20 @@ JACKIE_countOffSites-SeqSpace.main.obj: SeqSpace.main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countOffSites-SeqSpace.main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countOffSites-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
+
+JACKIE_countOffSites_thresholded-SeqSpace.main.o: SeqSpace.main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_thresholded_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countOffSites_thresholded-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Tpo -c -o JACKIE_countOffSites_thresholded-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countOffSites_thresholded-SeqSpace.main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_thresholded_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countOffSites_thresholded-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
+
+JACKIE_countOffSites_thresholded-SeqSpace.main.obj: SeqSpace.main.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_thresholded_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countOffSites_thresholded-SeqSpace.main.obj -MD -MP -MF $(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Tpo -c -o JACKIE_countOffSites_thresholded-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Tpo $(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SeqSpace.main.cpp' object='JACKIE_countOffSites_thresholded-SeqSpace.main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countOffSites_thresholded_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o JACKIE_countOffSites_thresholded-SeqSpace.main.obj `if test -f 'SeqSpace.main.cpp'; then $(CYGPATH_W) 'SeqSpace.main.cpp'; else $(CYGPATH_W) '$(srcdir)/SeqSpace.main.cpp'; fi`
 
 JACKIE_countSeqNeighbors-SeqSpace.main.o: SeqSpace.main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(JACKIE_countSeqNeighbors_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JACKIE_countSeqNeighbors-SeqSpace.main.o -MD -MP -MF $(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Tpo -c -o JACKIE_countSeqNeighbors-SeqSpace.main.o `test -f 'SeqSpace.main.cpp' || echo '$(srcdir)/'`SeqSpace.main.cpp
@@ -1079,9 +1071,9 @@ clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-		-rm -f ./$(DEPDIR)/JACKIE.,countOffSites.Po
-	-rm -f ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po
+		-rm -f ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po
+	-rm -f ./$(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po
@@ -1137,9 +1129,9 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-		-rm -f ./$(DEPDIR)/JACKIE.,countOffSites.Po
-	-rm -f ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po
+		-rm -f ./$(DEPDIR)/JACKIE_bin-JACKIE.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countOffSites-SeqSpace.main.Po
+	-rm -f ./$(DEPDIR)/JACKIE_countOffSites_thresholded-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_countSeqNeighbors_pmulti-SeqSpace.main.Po
 	-rm -f ./$(DEPDIR)/JACKIE_encodeSeqCountDatabase-SeqSpace.main.Po
