@@ -101,6 +101,11 @@ int printUsageAndExit_countOffSites(string programName)
     return 1;
 }
 
+int  printUsageAndExit_countOffSites_thresholded(string programName)
+{
+    cerr<<programName<<" someName.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz kmer mthreshold searchFile m0/m1/.../mk/total(-1 to indicate no threshold) [[col or col,sep,element] printMisPosProfile]"<<endl;
+    return 1;    
+}
 
 #define A 0
 #define C 1
@@ -2389,6 +2394,86 @@ class OffProfileRecord
 };
 
 
+
+
+class OffProfileRecordThresholded
+{
+    public:
+    bool overThreshold;
+    vector<uint32_t> offProfiles;
+    inline OffProfileRecordThresholded(int mthreshold):offProfiles(mthreshold+1,0),overThreshold(false){
+
+    }
+    inline OffProfileRecordThresholded(const OffTargetEnumerator &ote):offProfiles(ote.results,ote.results+(ote.mthres+1)),overThreshold(false){
+        
+    }
+    inline OffProfileRecordThresholded(const OffTargetEnumeratorOffSiteCounts &ote):offProfiles(ote.results,ote.results+(ote.mthres+1)),overThreshold(false){
+        
+    }
+    inline bool checkIfOverThreshold(const OffProfileRecordThresholded &_thres,uint32_t _maxTotal){
+        uint32_t totalHits=0;
+
+        if(this->overThreshold) {
+            //already over threshold, no need to check
+            return this->overThreshold;
+        }
+
+        for(int i=0;i<=offProfiles.size();i++){
+            uint32_t thisOffHits=this->offProfiles[i];
+            totalHits+=thisOffHits;
+            if(thisOffHits>_thres.offProfiles[i]){
+                this->overThreshold=true;
+                return this->overThreshold; //as long as one is over, it is over.
+            }
+        }
+
+        if(totalHits>_maxTotal){
+            this->overThreshold=true;
+        }
+
+        return this->overThreshold;
+    }
+
+    inline bool IsOverThreshold(){
+        return this->overThreshold;
+    }
+
+
+    inline void increment(const OffTargetEnumerator &ote){
+        for(int i=0;i<=ote.mthres;i++){
+            this->offProfiles[i]+=ote.results[i];
+        }
+    }
+    inline void increment(const OffTargetEnumeratorOffSiteCounts &ote){
+        for(int i=0;i<=ote.mthres;i++){
+            this->offProfiles[i]+=ote.results[i];
+        }
+    }
+    string getResultString(){
+        string ret;
+        ret=StringUtil::str(offProfiles[0]);
+        for(int i=1;i<offProfiles.size();i++)
+        {
+            ret+="/"+StringUtil::str(offProfiles[i]);
+        }
+        return ret;
+    }
+
+    inline uint32_t get(int nmismatches){
+        return this->offProfiles[nmismatches];
+    }
+    inline void increment(int nmismatches){
+        this->offProfiles[nmismatches]++;
+    }
+    inline void set(int nmismatches,int count){
+        this->offProfiles[nmismatches]=count;
+    }
+    inline uint32_t& operator[](int nmismatches){
+        return this->offProfiles[nmismatches];
+    }
+   
+};
+
 #ifdef __SEQSPACE_COMPARE
 int main(int argc,char **argv)
 {
@@ -3817,6 +3902,282 @@ int main(int argc,char **argv)
 }
 
 #endif //__MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS
+
+
+
+#ifdef __MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS_THRESHOLDED
+
+#define COUNTSEQNEIGHBORS_FIRSTPASS 0
+#define COUNTSEQNEIGHBORS_MIDPASS 1
+#define COUNTSEQNEIGHBORS_LASTPASS 2
+
+
+
+int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileName, int kmer, int mthres, string searchListFileName, string _prefix,int col0,string sep,int splitCom0,vector<OffProfileRecordThresholded>&offProfiles,vector<vector<SeqIdxCountPair>* >*offProfilePositionListsList,int passType,  OffProfileRecordThresholded &offProfileMax, uint32_t maxTotalHits)
+{
+    time_t start_time=time(NULL);
+    time_t now_time=time(NULL);
+    cerr<<"Start on "<<_prefix<<endl;
+    cerr<<_prefix<<" : start reading bitsring file"<<endl;
+    time_t prev_time=time(NULL);
+
+    bool useGzip=(StringUtil::toUpper(inBitStringFileName.substr(inBitStringFileName.length()-2,2))=="GZ");
+   
+    OffTargetEnumeratorOffSiteCounts enumerator(kmer,inBitStringFileName,mthres,_prefix,useGzip);
+
+    now_time=time(NULL);
+    cerr<<_prefix<<" : Finish reading in "<<(now_time-prev_time)<<" second(s)"<<endl;
+    prev_time=time(NULL);
+    uint64_t counter=0;
+
+    ifstream fin;
+    fin.open(searchListFileName.c_str());
+
+    uint64_t lino=0;
+
+    uint64_t recordNum=0;
+
+    while(!fin.eof()){
+        lino++;
+        if(lino%1000000==1){
+            now_time=time(NULL);
+            cerr<<_prefix<<" : processed "<<(lino-1)<<" lines, time elapsed:"<<(now_time-prev_time)<<endl;
+        }
+        string lin;
+        getline(fin,lin);
+        if(lin!=""){
+
+            if(passType!=COUNTSEQNEIGHBORS_FIRSTPASS && offProfiles[recordNum].IsOverThreshold()){
+                recordNum++; //already over threshold, incremenet record num and skip everything downstream
+                continue;
+            }
+
+            vector<SeqIdxCountPair>* thisOffProfilePositionsList=NULL;
+
+            if(offProfilePositionListsList){
+                if(passType==COUNTSEQNEIGHBORS_FIRSTPASS){
+                    thisOffProfilePositionsList=new vector<SeqIdxCountPair>;
+                    offProfilePositionListsList->push_back(thisOffProfilePositionsList);
+                }
+                else{
+                    thisOffProfilePositionsList=(*offProfilePositionListsList)[recordNum];
+                }
+                
+            }
+
+            uint64_t seqIdx;
+
+
+            if(col0>=0){
+                vector<string> fields;
+                StringUtil::split(lin,"\t",fields);
+                string col_value=fields[col0];
+                if(splitCom0>=0){
+                    vector<string> splits;
+                    StringUtil::split(col_value,sep,splits);
+                    seqIdx=enumerator.findOffTargetHits(splits[splitCom0],thisOffProfilePositionsList);
+                }else{
+                    seqIdx=enumerator.findOffTargetHits(col_value,thisOffProfilePositionsList);
+                }
+            }else{
+                seqIdx=enumerator.findOffTargetHits(lin,thisOffProfilePositionsList);
+            }
+
+            switch(passType){
+                case COUNTSEQNEIGHBORS_FIRSTPASS:
+                    offProfiles.push_back(OffProfileRecordThresholded(enumerator));
+                break;
+                case COUNTSEQNEIGHBORS_MIDPASS:
+                    offProfiles[recordNum].increment(enumerator);
+                    offProfiles[recordNum].checkIfOverThreshold(offProfileMax,maxTotalHits);                    
+                break;
+                case COUNTSEQNEIGHBORS_LASTPASS:
+                    offProfiles[recordNum].increment(enumerator);
+                    if(offProfiles[recordNum].checkIfOverThreshold(offProfileMax,maxTotalHits)){
+                        cout<<lin<<"\t"<<offProfiles[recordNum].getResultString();
+                        if(thisOffProfilePositionsList){
+                            cout<<"\t";
+                            bool first=true;
+                            for(vector<SeqIdxCountPair>::iterator i=thisOffProfilePositionsList->begin();i!=thisOffProfilePositionsList->end();i++){
+                                string mutString=OffTargetEnumeratorOffSiteCounts::getMutString(seqIdx,i->seqIdx,kmer);
+                                if(first){
+                                    first=false;
+                                    cout<<mutString<<":"<<StringUtil::str(int(i->count));
+                                }
+                                else{
+                                    cout<<"/"<<mutString<<":"<<StringUtil::str(int(i->count));
+                                }
+
+                            }
+                            
+                        }
+                        cout<<endl; //enumerator.getResultString()<<endl;
+                    }
+                break;
+            }
+
+            recordNum++;
+
+        }
+    }
+
+    now_time=time(NULL);
+    cerr<<_prefix<<" : Finish finding off-targets for "<<lino<< " lines in "<<(now_time-prev_time)<<" second(s)"<<endl;
+
+    cerr<<_prefix<<" : done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    return 0;
+}
+
+
+
+int main(int argc,char **argv)
+{
+
+    string extra_settings="";
+
+    #ifdef __FAST_IO__
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    extra_settings+=" FastIO option=True";
+    #endif //__FAST_IO__
+
+    #ifdef __USE_GZIP
+    extra_settings+=" GZIP=True";
+    #endif
+
+    //cerr<<"VaKation (\e[4mVa\e[0mcant \e[4mK\e[0m-mers Identific\e[4mation\e[0m) vers 0.1 mode 3Read "<<extra_settings<<endl;
+    printJACKIELogo(cerr);
+    cerr<<"JACKIE.countOffSites.thresholded "<<extra_settings<<endl;
+
+
+    
+
+
+    if(argc<7){
+        
+        return printUsageAndExit_countOffSites_thresholded(argv[0]);
+    }
+    
+    
+
+    string inBitStringFileNames=argv[1]; // /path/to/name.[AA,AC,AG,AT,CA,CC,CG,CT,GA,GC,GG,GT,TA,TC,TG,TT].seqbits.gz
+
+    int kmer=StringUtil::atoi(argv[2]);
+    int mthres=StringUtil::atoi(argv[3]);
+
+
+
+
+    string searchListFileName=argv[4];
+
+    int col0=-1;
+    string sep="";
+    int splitCom0=-1;
+
+    vector<vector<SeqIdxCountPair>* >* offProfilePositionListsList=NULL;
+
+    vector<string> splits;
+    StringUtil::split(argv[6],"/",splits);
+
+
+    uint32_t maxTotalHits=UINT32_MAX;
+    OffProfileRecordThresholded offProfileMax(mthres);
+    for(int i=0;i<=mthres;i++){
+        offProfileMax.set(i,UINT32_MAX);
+    }
+
+    for(int i=0;i<splits.size();i++){
+        int x=StringUtil::atoi(splits[i]);
+        if(i<=mthres){
+            if(x<0){
+                offProfileMax.set(i,UINT32_MAX);
+            }else{
+                offProfileMax.set(i,x);
+            }
+        }else if(i==mthres+1){
+            if(x<0){
+                maxTotalHits=UINT32_MAX;
+            }else{
+                maxTotalHits=x;
+            }
+        }
+
+    }
+
+
+
+    if(argc>=8){
+        string argv_string(argv[7]);
+        vector<string> v;
+        StringUtil::split(argv_string,",",v);
+        col0=StringUtil::atoi(v[0])-1;
+        if(v.size()>1)
+        {
+            sep=v[1];
+            splitCom0=StringUtil::atoi(v[2])-1;
+        }
+
+        if(argc>=9){
+            if(!strcmp(argv[8],"printMisPosProfile")){
+                offProfilePositionListsList=new vector<vector<SeqIdxCountPair>* >;
+            }
+        }
+
+    }
+
+    time_t start_time=time(NULL);
+
+
+    vector<string> nameSplits;
+    StringUtil::split(inBitStringFileNames,"]",nameSplits);
+    string inBitStringSuffix=nameSplits[1];
+    StringUtil::split(nameSplits[0],"[",nameSplits);
+    string inBitStringPrefix=nameSplits[0];
+    StringUtil::split(nameSplits[1],",",nameSplits);
+
+    vector<OffProfileRecordThresholded> offProfiles;
+
+    for(int i=0;i<nameSplits.size();i++){
+        int passType;
+        if(i==0){
+            passType=COUNTSEQNEIGHBORS_FIRSTPASS;
+        }
+        else if(i==nameSplits.size()-1){
+            passType=COUNTSEQNEIGHBORS_LASTPASS;
+        }
+        else{
+            passType=COUNTSEQNEIGHBORS_MIDPASS;
+        }
+        string inBitStringFileName=inBitStringPrefix+nameSplits[i]+inBitStringSuffix;
+        
+        countSeqNeighbors_prefixed_multi_offsitecounts_sub(inBitStringFileName, kmer, mthres, searchListFileName,  nameSplits[i], col0, sep, splitCom0, offProfiles,offProfilePositionListsList, passType,offProfileMax,maxTotalHits);
+    }
+
+
+
+
+    time_t now_time=time(NULL);
+    cerr<<"Done in "<<(now_time-start_time)<<" second(s)"<<endl;
+
+    if(offProfilePositionListsList){
+
+        for(vector<vector<SeqIdxCountPair>* >::iterator i=offProfilePositionListsList->begin();i!=offProfilePositionListsList->end();i++){
+            delete (*i);
+        }
+
+        delete offProfilePositionListsList;
+        //vector<vector<SeqIdxCountPair>* >* offProfilePositionListsList=NULL;
+    }
+
+    return 0;
+    
+
+}
+
+#endif //__MODE3_READER_PREFIXED_MULTI_OFFSITECOUNTS_THRESHOLDED
+
+
 
 
 
