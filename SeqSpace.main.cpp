@@ -4095,12 +4095,15 @@ int main(int argc,char **argv)
             }else{
                 offProfileMax.set(i,x);
             }
+            cerr<<"set off max at "<<i<<" to "<<x<<endl;
+
         }else if(i==mthres+1){
             if(x<0){
                 maxTotalHits=UINT32_MAX;
             }else{
                 maxTotalHits=x;
             }
+            cerr<<"set total offmax to "<<x<<endl;
         }
 
     }
