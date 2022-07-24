@@ -3945,16 +3945,16 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
         }
         string lin;
         getline(fin,lin);
-        /*DEBUG*/ cerr<<"line "<<lino<<lin<<" "<<endl;
+        
         if(lin!=""){
 
             if(passType!=COUNTSEQNEIGHBORS_FIRSTPASS && offProfiles[recordNum].IsOverThreshold()){
                 recordNum++; //already over threshold, incremenet record num and skip everything downstream
                 continue;
             }
-            /*DEBUG*/ cerr<<"b";
+            
             vector<SeqIdxCountPair>* thisOffProfilePositionsList=NULL;
-            /*DEBUG*/ cerr<<"c";
+            
             if(offProfilePositionListsList){
                 if(passType==COUNTSEQNEIGHBORS_FIRSTPASS){
                     thisOffProfilePositionsList=new vector<SeqIdxCountPair>;
@@ -3965,13 +3965,14 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                 }
                 
             }
-            /*DEBUG*/ cerr<<"d";
+            
             uint64_t seqIdx;
 
-            /*DEBUG*/ cerr<<"e";
+            
             if(col0>=0){
                 vector<string> fields;
                 StringUtil::split(lin,"\t",fields);
+
                 string col_value=fields[col0];
                 if(splitCom0>=0){
                     vector<string> splits;
@@ -3983,7 +3984,7 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
             }else{
                 seqIdx=enumerator.findOffTargetHits(lin,thisOffProfilePositionsList);
             }
-            /*DEBUG*/ cerr<<"f";
+            
             switch(passType){
                 case COUNTSEQNEIGHBORS_FIRSTPASS:
                     offProfiles.push_back(OffProfileRecordThresholded(enumerator));
@@ -4016,8 +4017,8 @@ int countSeqNeighbors_prefixed_multi_offsitecounts_sub(string inBitStringFileNam
                     }
                 break;
             }
-            /*DEBUG*/ cerr<<"g";
-            /*DEBUG*/ cerr<<endl;
+            
+            
             recordNum++;
 
         }
@@ -4080,7 +4081,7 @@ int main(int argc,char **argv)
     vector<vector<SeqIdxCountPair>* >* offProfilePositionListsList=NULL;
 
     vector<string> splits;
-    StringUtil::split(argv[6],"/",splits);
+    StringUtil::split(argv[5],"/",splits);
 
 
     uint32_t maxTotalHits=UINT32_MAX;
@@ -4112,8 +4113,8 @@ int main(int argc,char **argv)
 
 
 
-    if(argc>=8){
-        string argv_string(argv[7]);
+    if(argc>=7){
+        string argv_string(argv[6]);
         vector<string> v;
         StringUtil::split(argv_string,",",v);
         col0=StringUtil::atoi(v[0])-1;
@@ -4123,8 +4124,8 @@ int main(int argc,char **argv)
             splitCom0=StringUtil::atoi(v[2])-1;
         }
 
-        if(argc>=9){
-            if(!strcmp(argv[8],"printMisPosProfile")){
+        if(argc>=8){
+            if(!strcmp(argv[7],"printMisPosProfile")){
                 offProfilePositionListsList=new vector<vector<SeqIdxCountPair>* >;
             }
         }
